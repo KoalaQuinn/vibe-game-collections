@@ -1,0 +1,33 @@
+cff-version: 1.2.0
+message: "If you use or reference this framework, please cite it as below."
+title: "The GUAN Framework: Cognitive Copilot + Multi-LLM Orchestration Architecture"
+abstract: >-
+  A file-based, git-native framework for building persistent AI cognitive profiles
+  (GUAN Cards v1.1, Challenge Contract Protocol, Tiered Loading, Scaffold-Substitute Test,
+  Parallel Session Protocol, Cognitive Collection Protocol) and orchestrating work across
+  multiple LLM platforms (Trigger Matrix v1.2, JSON Output Contract, Codex Review Gate,
+  70-20-10 Distribution Rule, Patch-Only Delegation). Original research by GUAN, March 2026.
+type: software
+authors:
+  - name: "GUAN"
+date-released: "2026-03-12"
+version: "1.3.0"
+license: "CC-BY-NC-SA-4.0"
+keywords:
+  - cognitive copilot
+  - AI persona
+  - digital twin
+  - multi-LLM orchestration
+  - extended mind thesis
+  - context engineering
+  - AI memory system
+  - challenge contract
+  - Claude Code
+  - Codex CLI
+  - Gemini CLI
+  - GUAN Framework
+  - GUAN Cards
+  - decision support
+  - cognitive offloading
+  - parallel session management
+  - cognitive collection

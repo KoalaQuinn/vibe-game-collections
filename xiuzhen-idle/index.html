@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>修真放置 - 挂机飞升</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='50%25' y='50%25' font-size='80' text-anchor='middle' dy='.3em'%3E🔯%3C/text%3E%3C/svg%3E"></link>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: "Noto Serif SC", "STKaiti", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: radial-gradient(ellipse at center, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            color: #e6e6fa;
+            min-height: 100vh;
+            padding: 10px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .stats-card {
+            background: rgba(26, 26, 46, 0.8);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(138, 43, 226, 0.3);
+            box-shadow: 0 0 20px rgba(138, 43, 226, 0.1);
+        }
+        .stats-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+        .stat-item {
+            background: rgba(138, 43, 226, 0.2);
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid rgba(138, 43, 226, 0.3);
+        }
+        .progress-bar {
+            width: 100%;
+            height: 16px;
+            background: #2a4a1a;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 4px;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #6a992e, #8bbd3e);
+            transition: width 0.3s;
+        }
+        .tabs {
+            display: flex;
+            background: rgba(26, 26, 46, 0.8);
+            border-radius: 10px;
+            margin-bottom: 10px;
+            overflow: hidden;
+            border: 1px solid rgba(138, 43, 226, 0.3);
+        }
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .tab.active {
+            background: rgba(138, 43, 226, 0.5);
+            box-shadow: 0 0 10px rgba(138, 43, 226, 0.5);
+        }
+        .tab-content {
+            display: none;
+            background: rgba(26, 26, 46, 0.8);
+            border-radius: 10px;
+            padding: 15px;
+            min-height: 400px;
+            border: 1px solid rgba(138, 43, 226, 0.3);
+            box-shadow: 0 0 20px rgba(138, 43, 226, 0.1);
+        }
+        .tab-content.active {
+            display: block;
+        }
+        button {
+            background: linear-gradient(135deg, #8a2be2 0%, #9932cc 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.2s;
+            box-shadow: 0 0 10px rgba(138, 43, 226, 0.3);
+        }
+        button:hover {
+            background: linear-gradient(135deg, #9932cc 0%, #ba55d3 100%);
+            box-shadow: 0 0 20px rgba(138, 43, 226, 0.6);
+            transform: translateY(-1px);
+        }
+        button:disabled {
+            background: rgba(138, 43, 226, 0.3);
+            color: #888;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+        .meridian-canvas {
+            width: 100%;
+            height: 300px;
+            background: rgba(20, 40, 10, 0.8);
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+        .meridian-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .meridian-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: rgba(138, 43, 226, 0.2);
+            border: 1px solid rgba(138, 43, 226, 0.3);
+            border-radius: 6px;
+        }
+        .meridian-item.unlocked {
+            background: rgba(138, 43, 226, 0.5);
+            box-shadow: 0 0 10px rgba(138, 43, 226, 0.3);
+        }
+        .skill-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: rgba(138, 43, 226, 0.2);
+            border: 1px solid rgba(138, 43, 226, 0.3);
+            border-radius: 6px;
+            margin-bottom: 8px;
+        }
+        .skill-info {
+            flex: 1;
+        }
+        .adventure-area {
+            padding: 15px;
+            background: rgba(138, 43, 226, 0.2);
+            border: 1px solid rgba(138, 43, 226, 0.3);
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+        .adventure-area.active {
+            border: 2px solid #ba55d3;
+            box-shadow: 0 0 15px rgba(138, 43, 226, 0.4);
+        }
+        .offline-reward {
+            background: rgba(138, 43, 226, 0.4);
+            border: 1px solid rgba(138, 43, 226, 0.6);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            display: none;
+            box-shadow: 0 0 20px rgba(138, 43, 226, 0.2);
+        }
+        .offline-reward.show {
+            display: block;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            color: #dda0dd;
+            text-shadow: 0 0 10px rgba(138, 43, 226, 0.5);
+        }
+        h2 {
+            margin-bottom: 10px;
+            color: #e6e6fa;
+            text-shadow: 0 0 8px rgba(138, 43, 226, 0.3);
+        }
+        h3 {
+            margin-bottom: 5px;
+        }
+        .combat-header {
+            display: flex;
+            background: rgba(26, 26, 46, 0.8);
+            border-radius: 10px;
+            margin-bottom: 10px;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid rgba(138, 43, 226, 0.3);
+            box-shadow: 0 0 20px rgba(138, 43, 226, 0.1);
+        }
+        .player-combat-info, .enemy-combat-info {
+            flex: 1;
+            padding: 10px;
+        }
+        /* 伤害飘字 */
+        .damage-text {
+            position: absolute;
+            color: #ff4444;
+            font-weight: bold;
+            font-size: 18px;
+            pointer-events: none;
+            animation: damageFloat 1s ease-out forwards;
+            z-index: 10;
+        }
+        @keyframes damageFloat {
+            0% { opacity: 1; transform: translate(0, 0); }
+            100% { opacity: 0; transform: translate(0, -30px); }
+        }
+        .player-damage {
+            color: #ffffff;
+            left: 25%;
+            top: 50%;
+        }
+        .enemy-damage {
+            right: 25%;
+            top: 50%;
+        }
+        .player-combat-info {
+            border-right: 1px solid rgba(255,255,255,0.1);
+        }
+        .combat-row {
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+        .progress-bar.mini {
+            height: 10px;
+            margin-top: 2px;
+        }
+        #combatStatus {
+            font-size: 16px;
+            font-weight: bold;
+            color: #aadd66;
+            text-align: center;
+        }
+        /* 设置弹窗 */
+        .settings-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 100;
+        }
+        .settings-modal.show {
+            display: block;
+        }
+        .settings-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #0f0f23;
+            border: 1px solid rgba(138, 43, 226, 0.5);
+            padding: 20px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 0 30px rgba(138, 43, 226, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="text-align: left; font-size: 12px; color: #88aa66; margin-bottom: 5px;">v1.3 (2026-03-16 23:55) - 经脉可升级</div>
+            <button id="openSettingsBtn" onclick="game.openSettings()" style="padding: 5px 10px; font-size: 14px;">⚙ 设置</button>
+        </div>
+        <h1>🔯 修真放置 🔯</h1>
+        
+        <div id="offlineReward" class="offline-reward">
+            <h2>🎁 秘境离线收获</h2>
+            <div id="offlineRewardText"></div>
+            <button onclick="game.claimOfflineReward()" style="margin-top: 10px;">领取</button>
+        </div>
+        
+        <!-- 顶部固定战斗状态栏 -->
+        <div class="combat-header">
+            <div class="player-combat-info">
+                <div class="combat-row">
+                    <span>等级 <strong id="combatLevel">1</strong></span>
+                    <span>悟 <span id="combatWuxing">10</span></span>
+                </div>
+                <div class="combat-row">
+                    <span>气血 <span id="combatHpText">100/100</span></span>
+                    <div class="progress-bar mini">
+                        <div id="combatHpBar" class="progress-fill" style="width: 100%; background: #8b2e2e;"></div>
+                    </div>
+                </div>
+                <div class="combat-row">
+                    <span>内力 <span id="combatQiText">100/100</span></span>
+                    <div class="progress-bar mini">
+                        <div id="combatQiBar" class="progress-fill" style="width: 100%; background: #2e6a99;"></div>
+                    </div>
+                </div>
+                <div class="combat-row">
+                    <span>攻 <span id="combatAttack">10</span> / 防 <span id="combatDefense">5</span></span>
+                </div>
+            </div>
+            <div class="enemy-combat-info" id="enemyCombatInfo">
+                <div id="combatStatus">未在闯荡</div>
+                <div id="enemyRow" style="display: none;">
+                    <span>敌人 <span id="enemyName">野猪</span></span>
+                    <div class="progress-bar mini">
+                        <div id="enemyCombatBar" class="progress-fill" style="width: 100%; background: #a83232;"></div>
+                    </div>
+                    <span id="enemyHpText">20/20</span>
+                </div>
+                <div id="fightTimerRow" style="display: none;">
+                    <span>下一回合: <span id="fightTimerText">3</span>s</span>
+                    <div class="progress-bar mini">
+                        <div id="fightTimerBar" class="progress-fill" style="width: 100%; background: #6a992e;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" onclick="game.switchTab('cultivation')">修炼</div>
+            <div class="tab" onclick="game.switchTab('meridians')">经脉</div>
+            <div class="tab" onclick="game.switchTab('skills')">功法</div>
+            <div class="tab" onclick="game.switchTab('adventure')">秘境</div>
+            <div class="tab" onclick="game.switchTab('inventory')">背包</div>
+        </div>
+
+        <div id="cultivation" class="tab-content active">
+            <!-- 在线修炼 -->
+            <div style="background: rgba(60, 100, 30, 0.3); border-radius: 8px; padding: 15px; margin-bottom: 15px;">
+                <h2>⚡ 在线吐纳</h2>
+                <div class="stat-item" style="margin-bottom: 10px;">
+                    <div>境界 <span id="levelText">1</span> - 炼气一层</div>
+                    <div class="progress-bar">
+                        <div id="expBar" class="progress-fill" style="width: 0%"></div>
+                    </div>
+                    <div style="font-size: 12px; color: #ccc;"><span id="expText">0/100</span> 灵气</div>
+                </div>
+                <button id="levelUpBtn" onclick="game.levelUp()" disabled style="width: 100%; margin-top: 10px; font-size: 18px; padding: 15px;">突破</button>
+                <br>
+                <p>保持网页打开，持续吸纳天地灵气。</p>
+                <p>每5秒获得 <span id="xiuweiPerCultivate">2</span> 点灵气（受悟性影响）。</p>
+                <div class="progress-bar" style="margin-top: 10px;">
+                    <div id="cultivateBar" class="progress-fill" style="width: 0%"></div>
+                </div>
+                <p style="text-align: center; font-size: 14px; margin-top: 5px;">下一次灵气：<span id="cultivateCountdown">5</span>秒</p>
+            </div>
+
+            <!-- 离线积累 -->
+            <div style="background: rgba(60, 100, 30, 0.3); border-radius: 8px; padding: 15px;">
+                <h2>💎 离线灵气</h2>
+                <p>关闭网页后，丹田依然会自动吸纳灵气，需要手动领取。最多储存 24 小时。</p>
+                
+                <div style="margin-top: 15px; margin-bottom: 15px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                        <span>丹田积累</span>
+                        <span><span id="offlineAccumulatedText">0</span> / <span id="offlineMaxCapacityText">0</span></span>
+                    </div>
+                    <div class="progress-bar">
+                        <div id="offlineAccumulatedBar" class="progress-fill" style="width: 0%; background: linear-gradient(90deg, #9932cc, #ba55d3);"></div>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 10px;">
+                    <p>每小时积累 <span id="offlineXiuweiPerHour">24</span> 点灵气（受悟性影响）</p>
+                </div>
+
+                <button id="claimOfflineXiuweiBtn" onclick="game.claimOfflineAccumulated()" disabled style="width: 100%; font-size: 18px; padding: 15px; background: #9932cc;">吸纳灵气</button>
+            </div>
+        </div>
+
+        <div id="meridians" class="tab-content">
+            <h2>🀄️ 丹田经脉</h2>
+            <canvas id="meridianCanvas" class="meridian-canvas"></canvas>
+            <div id="meridianList" class="meridian-list"></div>
+        </div>
+
+        <div id="skills" class="tab-content">
+            <h2>📜 功法修炼</h2>
+            <div id="skillList"></div>
+        </div>
+
+        <div id="adventure" class="tab-content">
+            <h2>🏔️ 秘境探险</h2>
+            <p>挂机探险，自动打怪，获得天材地宝和经验。</p>
+            <br>
+            <div id="areaList"></div>
+            <div id="adventureStatus" style="margin-top: 15px;"></div>
+        </div>
+        <div id="inventory" class="tab-content">
+            <h2>🎒 背包行囊</h2>
+            <div id="inventoryList"></div>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+    <script>
+        // 初始化游戏
+        window.addEventListener('load', function() {
+            game.init();
+            game.startLoop();
+        });
+    </script>
+    
+    <!-- 设置弹窗 -->
+    <div id="settingsModal" class="settings-modal" onclick="if (event.target == this) game.closeSettings();">
+        <div class="settings-content">
+            <h2>⚙ 游戏设置</h2>
+            <div style="margin-top: 20px;">
+                <p><strong>重置游戏</strong></p>
+                <p>清空当前存档，重新开始游戏。</p>
+                <button onclick="game.resetGame()" style="margin-top: 10px; background: #a83232;">确认重置</button>
+            </div>
+            <div style="margin-top: 20px; text-align: right;">
+                <button onclick="game.closeSettings()">关闭</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

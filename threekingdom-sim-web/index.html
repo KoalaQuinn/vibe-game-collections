@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>三国立志传：草莽英雄</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='50%25' y='50%25' font-size='80' text-anchor='middle' dy='.3em'%3E⚔️%3C/text%3E%3C/svg%3E"></link>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+        body {
+            font-family: "Noto Serif SC", "STKaiti", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: radial-gradient(ellipse at center, #1a0a00 0%, #2d1508 50%, #1a0a00 100%);
+            color: #ffdead;
+        }
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            padding-bottom: 0;
+        }
+        /* ========== 顶部状态区 ========== */
+        .status-bar {
+            background: rgba(60, 30, 15, 0.9);
+            border-bottom: 1px solid rgba(210, 105, 30, 0.4);
+            padding: 6px 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+            flex-shrink: 0;
+        }
+        .date-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+        .date-text {
+            font-size: 14px;
+            color: #cd853f;
+        }
+        .ap-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .ap-text {
+            font-size: 14px;
+            color: #cd853f;
+        }
+        .progress-bar {
+            width: 80px;
+            height: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+            overflow: hidden;
+            border: 1px solid rgba(210, 105, 30, 0.3);
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #cd853f, #daa520);
+            transition: width 0.3s;
+        }
+        /* 属性资源图标行 */
+        .stats-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 4px;
+            margin-top: 6px;
+        }
+        .stat-item {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(210, 105, 30, 0.2);
+            border: 1px solid rgba(210, 105, 30, 0.3);
+            border-radius: 6px;
+            padding: 4px 6px;
+            font-size: 13px;
+        }
+        .stat-icon {
+            font-size: 16px;
+        }
+        .stat-value {
+            flex: 1;
+            text-align: right;
+            font-weight: bold;
+        }
+        /* ========== 中间地图区 ========== */
+        .map-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            min-height: 50%;
+        }
+        .location-title {
+            font-size: 18px;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px dotted rgba(210, 105, 30, 0.4);
+        }
+        .location-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .location-card {
+            background: rgba(210, 105, 30, 0.2);
+            border: 1px solid rgba(210, 105, 30, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .location-card:hover {
+            background: rgba(210, 105, 30, 0.35);
+            box-shadow: 0 0 10px rgba(210, 105, 30, 0.3);
+        }
+        .location-name {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+        .location-desc {
+            font-size: 12px;
+            color: #deb887;
+        }
+        /* 大地图城池 */
+        .city-map {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+        }
+        .city-node {
+            background: rgba(210, 105, 30, 0.2);
+            border: 1px solid rgba(210, 105, 30, 0.3);
+            border-radius: 6px;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+        }
+        .city-node:hover {
+            background: rgba(210, 105, 30, 0.35);
+        }
+        .city-name {
+            font-weight: bold;
+        }
+        .city-level {
+            font-size: 12px;
+            color: #deb887;
+        }
+        /* 事件日志 */
+        .event-log {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .event-log h4 {
+            margin-top: 0;
+            color: #cd853f;
+        }
+        .event-log p {
+            margin-bottom: 5px;
+            border-bottom: 1px dotted rgba(210, 105, 30, 0.3);
+            padding-bottom: 3px;
+        }
+        /* ========== 底部功能Tab ========== */
+        .bottom-tabs {
+            display: flex;
+            background: rgba(60, 30, 15, 0.9);
+            border-top: 1px solid rgba(210, 105, 30, 0.4);
+            flex-shrink: 0;
+        }
+        .bottom-tab {
+            flex: 1;
+            text-align: center;
+            padding: 10px 5px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+        .bottom-tab.active {
+            background: rgba(210, 105, 30, 0.5);
+        }
+        .tab-icon {
+            font-size: 20px;
+            display: block;
+            margin-bottom: 2px;
+        }
+        /* ========== 弹窗 ========== */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 200;
+        }
+        .modal.show {
+            display: block;
+        }
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #1a0a00;
+            border: 2px solid rgba(210, 105, 30, 0.6);
+            padding: 20px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 450px;
+            box-shadow: 0 0 30px rgba(210, 105, 30, 0.4);
+        }
+        .modal-text {
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+        .modal-options {
+            margin-top: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        button {
+            background: linear-gradient(135deg, #cd853f 0%, #daa520 100%);
+            color: #1a0a00;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.2s;
+            box-shadow: 0 0 10px rgba(210, 105, 30, 0.3);
+        }
+        button:hover:not(:disabled) {
+            background: linear-gradient(135deg, #daa520 0%, #ffd700 100%);
+            box-shadow: 0 0 20px rgba(210, 105, 30, 0.6);
+            transform: translateY(-1px);
+        }
+        button:disabled {
+            background: rgba(210, 105, 30, 0.3);
+            color: #8b6914;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+        /* 角色面板 */
+        .attr-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .attr-card {
+            background: rgba(210, 105, 30, 0.2);
+            border: 1px solid rgba(210, 105, 30, 0.3);
+            border-radius: 8px;
+            padding: 10px;
+        }
+        .attr-name {
+            font-size: 14px;
+            color: #cd853f;
+            margin-bottom: 4px;
+        }
+        .attr-value {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .attr-exp {
+            font-size: 12px;
+            color: #deb887;
+        }
+        /* NPC 羁绊 */
+        .npc-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: rgba(210, 105, 30, 0.2);
+            border: 1px solid rgba(210, 105, 30, 0.3);
+            border-radius: 6px;
+            margin-bottom: 8px;
+        }
+        /* 浮动通知 */
+        .notice {
+            position: fixed;
+            top: 20%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 20px;
+            font-weight: bold;
+            color: #ffdead;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px 25px;
+            border-radius: 10px;
+            z-index: 50;
+        }
+        /* 背包面板 */
+        .empty-tip {
+            text-align: center;
+            padding: 30px;
+            color: #cd853f;
+        }
+        /* 角色头部信息 */
+        .character-header {
+            background: rgba(210, 105, 30, 0.2);
+            border: 1px solid rgba(210, 105, 30, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+        .character-header h2 {
+            margin: 0 0 5px 0;
+            color: #daa520;
+        }
+        .character-sub {
+            margin: 0;
+            color: #deb887;
+            font-size: 14px;
+        }
+        /* 属性面板 */
+        .attr-panel {
+            background: rgba(210, 105, 30, 0.15);
+            border: 1px solid rgba(210, 105, 30, 0.3);
+            border-radius: 8px;
+            padding: 10px 15px;
+            margin-bottom: 15px;
+        }
+        .panel-title {
+            margin: 0 0 10px 0;
+            padding-bottom: 5px;
+            border-bottom: 1px dotted rgba(210, 105, 30, 0.4);
+            color: #cd853f;
+            font-size: 16px;
+        }
+        /* 带进度条的属性行 */
+        .attr-row-bar {
+            margin-bottom: 10px;
+        }
+        .attr-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 3px;
+            font-size: 14px;
+        }
+        .exp-bar {
+            position: relative;
+            height: 16px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid rgba(210, 105, 30, 0.3);
+        }
+        .exp-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #cd853f, #daa520);
+            transition: width 0.3s;
+        }
+        .exp-text {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            text-align: center;
+            font-size: 12px;
+            line-height: 16px;
+            color: #1a0a00;
+            text-shadow: 0 0 2px rgba(255, 255, 255, 0.5);
+        }
+        /* 纯文本信息行 */
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            border-bottom: 1px dotted rgba(210, 105, 30, 0.2);
+            font-size: 14px;
+        }
+        .info-label {
+            color: #cd853f;
+        }
+        .info-value {
+            font-weight: bold;
+        }
+        /* 任务列表 */
+        .quest-item {
+            background: rgba(210, 105, 30, 0.15);
+            border: 1px solid rgba(210, 105, 30, 0.3);
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        .quest-item.completed {
+            opacity: 0.6;
+            background: rgba(0, 0, 0, 0.2);
+        }
+        .quest-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .quest-name {
+            font-size: 16px;
+            color: #ffdead;
+        }
+        .quest-desc {
+            font-size: 14px;
+            color: #deb887;
+        }
+        .claim-btn {
+            font-size: 14px;
+            padding: 4px 12px;
+        }
+        /* 底部信息栏 */
+        .footer-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(40, 20, 10, 0.95);
+            border-top: 1px solid rgba(210, 105, 30, 0.4);
+            padding: 6px 10px;
+            flex-shrink: 0;
+        }
+        .version-text {
+            font-size: 12px;
+            color: #cd853f;
+        }
+        .reset-btn {
+            font-size: 12px;
+            padding: 4px 10px;
+            box-shadow: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <!-- 顶部状态区 -->
+        <div class="status-bar">
+            <div class="date-row">
+                <div class="date-text">
+                    📅 <span id="dateText">184年 1月</span>
+                </div>
+                <div class="ap-row">
+                    <span class="ap-text">💪 行动力: <span id="apText">5</span>/<span id="apMaxText">5</span></span>
+                    <div class="progress-bar">
+                        <div id="apBar" class="progress-fill" style="width: 100%"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="stats-row">
+                <div class="stat-item">
+                    <span class="stat-icon">⚔️</span>
+                    <span>武力</span>
+                    <span class="stat-value" id="statForce">40</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-icon">🧠</span>
+                    <span>智力</span>
+                    <span class="stat-value" id="statInt">40</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-icon">💬</span>
+                    <span>魅力</span>
+                    <span class="stat-value" id="statCha">40</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-icon">📋</span>
+                    <span>统率</span>
+                    <span class="stat-value" id="statCom">30</span>
+                </div>
+            </div>
+            <div class="stats-row">
+                <div class="stat-item">
+                    <span class="stat-icon">💰</span>
+                    <span>金钱</span>
+                    <span class="stat-value" id="resMoney">100</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-icon">🌾</span>
+                    <span>粮食</span>
+                    <span class="stat-value" id="resGrain">150</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-icon">👥</span>
+                    <span>人口</span>
+                    <span class="stat-value" id="resPeople">50</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-icon">⚔️</span>
+                    <span>士兵</span>
+                    <span class="stat-value" id="resSoldier">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 中间地图场景区 -->
+        <div class="map-area" id="mapArea">
+            <!-- JS 渲染 -->
+        </div>
+
+        <!-- 底部功能Tab -->
+        <div class="bottom-tabs">
+            <div class="bottom-tab active" onclick="game.switchBottomTab('map')">
+                <span class="tab-icon">🗺️</span>
+                <span>地图</span>
+            </div>
+            <div class="bottom-tab" onclick="game.switchBottomTab('character')">
+                <span class="tab-icon">👤</span>
+                <span>角色</span>
+            </div>
+            <div class="bottom-tab" onclick="game.switchBottomTab('quest')">
+                <span class="tab-icon">📋</span>
+                <span>任务</span>
+            </div>
+            <div class="bottom-tab" onclick="game.switchBottomTab('log')">
+                <span class="tab-icon">📜</span>
+                <span>日志</span>
+            </div>
+            <div class="bottom-tab" onclick="game.switchBottomTab('npc')">
+                <span class="tab-icon">👥</span>
+                <span>羁绊</span>
+            </div>
+        </div>
+        <!-- 底部信息栏 -->
+        <div class="footer-bar">
+            <span class="version-text">⚔️ 三国立志传：草莽英雄 v2.0.0 (2026-03-19)</span>
+            <button class="reset-btn" onclick="game.resetGame()">重置游戏</button>
+        </div>
+    </div>
+
+    <!-- 设置弹窗 (从底部tab打开) -->
+    <div id="settingsModal" class="modal" onclick="if (event.target == this) game.closeModal();">
+        <div class="modal-content">
+            <h2>⚙ 设置</h2>
+            <div style="margin-top: 20px;">
+                <p><strong>重置游戏</strong></p>
+                <p>清空当前存档，重新开始游戏。</p>
+                <button onclick="game.resetGame()" style="margin-top: 10px; background: #a83232;">确认重置</button>
+            </div>
+            <div style="margin-top: 20px; text-align: right;">
+                <button onclick="game.closeModal();">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 事件弹窗 -->
+    <div id="eventModal" class="modal" onclick="if (event.target == this) {}">
+        <div id="eventModalContent" class="modal-content">
+            <!-- JS 渲染 -->
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+    <script>
+        window.addEventListener('load', function() {
+            game.init();
+        });
+    </script>
+</body>
+</html>
