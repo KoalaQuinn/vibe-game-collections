@@ -113,6 +113,8 @@ const game = {
 
     // 找对话
     findDialogue: function(id, character) {
+        // 如果id是数字，说明是index
+        if (typeof id === 'number') return character.dialogues[id];
         // 如果id就是对话本身
         if (!id) return character.dialogues[0];
         return character.dialogues.find(d => d.id === id);
