@@ -32,11 +32,36 @@
             display: flex;
             justify-content: space-between;
             width: 100%;
-            max-width: 800px;
+            max-width: 400px;
             margin-bottom: 10px;
             padding: 10px;
             background: rgba(255, 255, 255, 0.1);
             border-radius: 8px;
+        }
+
+        .exp-bar-container {
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .exp-bar {
+            flex: 1;
+            height: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 0 10px;
+        }
+
+        .exp-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50 0%, #8BC34A 100%);
+            width: 0%;
+            transition: width 0.3s;
         }
 
         .stat {
@@ -50,31 +75,13 @@
         }
 
         .stat-label {
-            font-size: 0.8rem;
+            font-size: 0.7rem;
             opacity: 0.7;
-        }
-
-        #gameCanvas {
-            border: 3px solid rgba(255, 255, 255, 0.2);
-            border-radius: 8px;
-            background: linear-gradient(#0d1b2a, #1b263b);
-        }
-
-        /* 瞄准线 */
-        .aim-container {
-            margin-top: 10px;
-            text-align: center;
-        }
-
-        .aim-instruction {
-            font-size: 0.9rem;
-            opacity: 0.8;
-            margin-bottom: 5px;
         }
 
         .power-bar {
             width: 100%;
-            max-width: 800px;
+            max-width: 400px;
             height: 20px;
             background: rgba(0, 0, 0, 0.3);
             border-radius: 10px;
@@ -88,29 +95,80 @@
             transition: width 0.1s;
         }
 
-        .fire-btn {
+        canvas {
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            background: linear-gradient(#0d1b2a, #1b263b);
+        }
+
+        .aim-container {
             margin-top: 10px;
-            padding: 12px 40px;
-            font-size: 1.2rem;
-            font-weight: bold;
-            background: linear-gradient(90deg, #f44336 0%, #ff5722 100%);
-            color: white;
-            border: none;
-            border-radius: 25px;
-            cursor: pointer;
+            text-align: center;
         }
 
-        .fire-btn:hover {
-            transform: scale(1.05);
+        .aim-instruction {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-bottom: 5px;
         }
+    </style>
+</head>
+<body>
+    <h1>💥 向僵尸开炮</h1>
 
-        .fire-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
+    <div class="ui-bar">
+        <div class="stat">
+            <div class="stat-value" id="playerLevel">1</div>
+            <div class="stat-label">等级</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value" id="wave">1</div>
+            <div class="stat-label">波次</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value" id="hp">10</div>
+            <div class="stat-label">基地血量</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value" id="skill-orbs">0</div>
+            <div class="stat-label">技能球</div>
+        </div>
+    </div>
 
-        /* 技能选择弹窗 */
+    <div class="exp-bar-container">
+        <span style="font-size: 0.8rem; opacity: 0.7;">exp</span>
+        <div class="exp-bar">
+            <div class="exp-fill" id="exp-fill"></div>
+        </div>
+        <span style="font-size: 0.8rem; opacity: 0.7;"><span id="exp-text">0/10</span></span>
+    </div>
+
+    <canvas id="gameCanvas" width="400" height="700"></canvas>
+
+    <div class="aim-container">
+        <div class="aim-instruction">自动射击，满级弹出升级选项 ⚔️</div>
+    </div>
+
+    <!-- 技能选择弹窗 -->
+    <div id="skill-modal" class="skill-modal">
+        <div class="skill-content">
+            <h2>升级！选择一个技能</h2>
+            <div id="skill-options" class="skill-options"></div>
+        </div>
+    </div>
+
+    <!-- 游戏结束弹窗 -->
+    <div id="game-over-modal" class="game-over-modal">
+        <div class="game-over-content">
+            <h2>游戏结束</h2>
+            <p>你坚持到了第 <span id="final-wave">1</span> 波</p>
+            <p>总共击杀了 <span id="total-kills">0</span> 只僵尸</p>
+            <button class="restart-btn" onclick="restartGame()">重新开始</button>
+        </div>
+    </div>
+
+    <style>
+        /* 技能弹窗 */
         .skill-modal {
             display: none;
             position: fixed;
@@ -194,32 +252,6 @@
         .rarity-epic { background: rgba(156, 39, 176, 0.3); color: #9c27b0; }
         .rarity-legendary { background: rgba(255, 193, 7, 0.3); color: #FFC107; }
 
-        /* 技能栏 */
-        .skills-bar {
-            margin-top: 10px;
-            width: 100%;
-            max-width: 800px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            padding: 10px;
-        }
-
-        .skills-bar h4 {
-            margin-bottom: 8px;
-        }
-
-        .skills-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 5px;
-        }
-
-        .skill-tag {
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 0.8rem;
-        }
-
         /* 游戏结束 */
         .game-over-modal {
             display: none;
@@ -263,58 +295,6 @@
             cursor: pointer;
         }
     </style>
-</head>
-<body>
-    <h1>💥 向僵尸开炮</h1>
-
-    <div class="ui-bar">
-        <div class="stat">
-            <div class="stat-value" id="wave">1</div>
-            <div class="stat-label">波次</div>
-        </div>
-        <div class="stat">
-            <div class="stat-value" id="hp">10</div>
-            <div class="stat-label">基地血量</div>
-        </div>
-        <div class="stat">
-            <div class="stat-value" id="skill-orbs">0</div>
-            <div class="stat-label">技能球</div>
-        </div>
-    </div>
-
-    <canvas id="gameCanvas" width="400" height="700"></canvas>
-
-    </div>
-
-    <div class="aim-container">
-        <div class="aim-instruction">拖动瞄准 → 按住蓄力 → 松开开火</div>
-        <div class="power-bar">
-            <div class="power-fill" id="power-fill"></div>
-        </div>
-    </div>
-
-    <div class="skills-bar">
-        <h4>当前技能:</h4>
-        <div id="skills-list" class="skills-list"></div>
-    </div>
-
-    <!-- 技能选择弹窗 -->
-    <div id="skill-modal" class="skill-modal">
-        <div class="skill-content">
-            <h2>选择一个技能</h2>
-            <div id="skill-options" class="skill-options"></div>
-        </div>
-    </div>
-
-    <!-- 游戏结束弹窗 -->
-    <div id="game-over-modal" class="game-over-modal">
-        <div class="game-over-content">
-            <h2>游戏结束</h2>
-            <p>你坚持到了第 <span id="final-wave">1</span> 波</p>
-            <p>总共击杀了 <span id="total-kills">0</span> 只僵尸</p>
-            <button class="restart-btn" onclick="restartGame()">重新开始</button>
-        </div>
-    </div>
 
     <script src="game.js"></script>
     <script>

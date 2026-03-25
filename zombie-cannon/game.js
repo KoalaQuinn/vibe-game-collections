@@ -1,5 +1,5 @@
 // 💥 向僵尸开炮 - 网页版
-// 玩法：拖动瞄准，蓄力发射，炮弹反弹，击杀僵尸，捡技能球，选技能
+// 改版：自动射击，敌人从上方下来，玩家升级
 
 const game = {
     // Canvas - 竖屏适配手机
@@ -9,19 +9,20 @@ const game = {
     height: 700,
 
     // 游戏状态
-    state: 'aiming', // aiming / firing / waiting
+    state: 'fighting', // aiming / fighting / waiting
     wave: 1,
     baseHp: 10,
     skillOrbs: 0,
     totalKills: 0,
+    exp: 0,
+    expToNext: 10,
+    playerLevel: 1,
+    money: 0,
 
-    // 瞄准 - 左下角发射
-    startX: 40,
-    startY: 350,
-    aimAngle: 0.785, // 45度 default
-    power: 0,
-    powerDirection: 1,
-    powerInterval: null,
+    // 自动射击 - 底部中央发射
+    startX: 200,
+    startY: 680,
+    lastFireTime: Date.now(),
 
     // 炮弹
     bullets: [],
@@ -50,16 +51,17 @@ const game = {
         {id: 'large-bullet', name: '大炮弹', description: '炮弹更大，伤害更高', rarity: 'epic', damageMul: 1.8, sizeMul: 1.5},
         {id: 'heal', name: '基地维修', description: '回复基地3点血量', rarity: 'common', healAmount: 3},
         {id: 'money', name: '高能电池', description: '直接获得一个技能球', rarity: 'common', extraOrb: 1},
+        {id: 'attack-speed', name: '快速填装', description: '提高射击速度', rarity: 'common', fireRateMul: 1.2},
         {id: 'nuke', name: '核弹', description: '一发清空全屏僵尸', rarity: 'legendary'},
         {id: 'pierce-all', name: '绝对穿透', description: '炮弹无限穿透', rarity: 'legendary', infinitePierce: true},
     ],
 
     // 定义僵尸
     zombieTypes: [
-        {name: '普通僵尸', hp: 10, speed: 0.5, size: 20, reward: 1, color: '#4CAF50'},
-        {name: '快鬼', hp: 8, speed: 1.2, size: 18, reward: 2, color: '#FF9800'},
-        {name: '大胖', hp: 30, speed: 0.2, size: 35, reward: 3, color: '#F44336'},
-        {name: '坦克', hp: 100, speed: 0.1, size: 50, reward: 10, color: '#9C27B0'},
+        {name: '普通僵尸', hp: 10, speed: 0.5, size: 20, rewardExp: 2, rewardMoney: 1, color: '#4CAF50'},
+        {name: '快鬼', hp: 8, speed: 1.2, size: 18, rewardExp: 3, rewardMoney: 2, color: '#FF9800'},
+        {name: '大胖', hp: 30, speed: 0.2, size: 35, rewardExp: 5, rewardMoney: 3, color: '#F44336'},
+        {name: '坦克', hp: 100, speed: 0.1, size: 50, rewardExp: 10, rewardMoney: 10, color: '#9C27B0'},
     ],
 
     // === 初始化 ===
@@ -69,24 +71,8 @@ const game = {
         this.width = this.canvas.width;
         this.height = this.canvas.height;
 
-        // 绑定鼠标事件
-        this.canvas.addEventListener('mousedown', (e) => this.startAim(e));
-        this.canvas.addEventListener('mousemove', (e) => this.updateAim(e));
-        this.canvas.addEventListener('mouseup', (e) => this.fire(e));
-        this.canvas.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            this.startAim(e.touches[0]);
-        });
-        this.canvas.addEventListener('touchmove', (e) => {
-            e.preventDefault();
-            this.updateAim(e.touches[0]);
-        });
-        this.canvas.addEventListener('touchend', (e) => {
-            e.preventDefault();
-            this.fire(e.changedTouches[0]);
-        });
-
         this.startNewGame();
+        this.startFighting();
         this.gameLoop();
     },
 
@@ -95,7 +81,11 @@ const game = {
         this.baseHp = 10;
         this.skillOrbs = 0;
         this.totalKills = 0;
-        this.state = 'aiming';
+        this.exp = 0;
+        this.expToNext = 10;
+        this.playerLevel = 1;
+        this.money = 0;
+        this.state = 'fighting';
         this.bullets = [];
         this.zombies = [];
         this.orbs = [];
@@ -106,94 +96,47 @@ const game = {
         this.hideGameOver();
     },
 
-    // === 瞄准阶段 ===
-    startAim: function(e) {
-        if (this.state !== 'aiming') return;
-        const rect = this.canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-
-        // 计算角度
-        const dx = x - this.startX;
-        const dy = y - this.startY;
-        this.aimAngle = Math.atan2(dy, dx);
-
-        // 开始蓄力
-        this.power = 0;
-        this.powerDirection = 1;
-        this.powerInterval = setInterval(() => this.updatePower(), 30);
+    // 自动射击，玩家只需要选升级，不用手动瞄准
+    startFighting: function() {
+        this.state = 'fighting';
+        this.updateAutoFire();
     },
 
-    updateAim: function(e) {
-        if (this.state !== 'aiming' || !this.powerInterval) return;
-        const rect = this.canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        const dx = x - this.startX;
-        const dy = y - this.startY;
-        this.aimAngle = Math.atan2(dy, dx);
-    },
+    // 自动射击，子弹从底部中心自动向上发射
+    updateAutoFire: function() {
+        if (this.state !== 'fighting') return;
 
-    updatePower: function() {
-        this.power += 2 * this.powerDirection;
-        if (this.power >= 100) {
-            this.power = 100;
-            this.powerDirection = -1;
-        } else if (this.power <= 0) {
-            this.power = 0;
-            this.powerDirection = 1;
-        }
-        document.getElementById('power-fill').style.width = this.power + '%';
-    },
-
-    fire: function(e) {
-        if (this.state !== 'aiming') return;
-        clearInterval(this.powerInterval);
-        this.powerInterval = null;
-
-        if (this.power < 10) {
-            this.power = 10;
+        // 每秒发射 2 / speedBoost 发
+        if (!this.lastFireTime) this.lastFireTime = Date.now();
+        const now = Date.now();
+        if (now - this.lastFireTime >= 500 / (this.getFireRateBoost())) {
+            this.autoFireOne();
+            this.lastFireTime = now;
         }
 
-        // 发射炮弹
-        this.spawnBullet();
+        requestAnimationFrame(() => this.updateAutoFire());
+    },
 
-        // 如果有多连发技能
+    getFireRateBoost: function() {
+        let boost = 1;
+        this.skills.forEach(s => {
+            if (s.fireRateMul) boost *= s.fireRateMul;
+        });
+        return boost;
+    },
+
+    autoFireOne: function() {
+        // 随机角度扩散，从底部中心向上发射
+        const spread = (Math.random() - 0.5) * 0.8;
+        const angle = Math.PI/2 + spread; // 向上
+        this.spawnBullet(angle);
+
+        // 多连发
         const extraBullets = this.getExtraBulletCount();
         for (let i = 0; i < extraBullets; i++) {
-            // 稍微分散角度
-            const spread = (Math.random() - 0.5) * 0.3;
-            this.spawnBullet(this.aimAngle + spread);
+            const spreadExtra = (Math.random() - 0.5) * 0.8;
+            this.spawnBullet(angle + spreadExtra);
         }
-
-        this.state = 'firing';
-        document.getElementById('power-fill').style.width = '0%';
-    },
-
-    spawnBullet: function(angleOffset = 0) {
-        const speed = (this.power / 100) * 15;
-        const maxBounces = this.getTotalExtraBounces() + 3;
-        const pierce = this.getInfinitePierce() ? 999 : (this.getTotalPierce() + 1);
-
-        let size = 6;
-        let damage = 10;
-        const sizeMul = this.getSizeMul();
-        const damageMul = this.getDamageMul();
-        size *= sizeMul;
-        damage *= damageMul;
-
-        this.bullets.push({
-            x: this.startX,
-            y: this.startY,
-            vx: Math.cos(this.aimAngle + angleOffset) * speed,
-            vy: Math.sin(this.aimAngle + angleOffset) * speed,
-            radius: size,
-            damage: damage,
-            maxBounces: maxBounces,
-            bounces: 0,
-            pierceLeft: pierce,
-            exploded: false
-        });
     },
 
     // === 刷僵尸 ===
@@ -224,16 +167,18 @@ const game = {
             type = this.zombieTypes[3];
         }
 
-        const y = 50 + Math.random() * (this.height - 100);
+        // 敌人从上方出生往下走
+        const x = 50 + Math.random() * (this.width - 100);
         this.zombies.push({
-            x: this.width - 30,
-            y: y,
+            x: x,
+            y: -30,
             hp: type.hp * (1 + this.wave * 0.1),
             maxHp: type.hp * (1 + this.wave * 0.1),
-            speed: type.speed,
+            speed: type.speed * 0.2, // 减慢 80% 速度
             size: type.size,
             color: type.color,
-            reward: type.reward,
+            rewardExp: type.rewardExp,
+            rewardMoney: type.rewardMoney,
             burning: 0,
             poison: 0
         });
@@ -241,7 +186,7 @@ const game = {
 
     // === 更新 ===
     update: function() {
-        if (this.state !== 'firing') return;
+        if (this.state !== 'fighting') return;
 
         // 更新炮弹
         for (let i = this.bullets.length - 1; i >= 0; i--) {
@@ -261,15 +206,16 @@ const game = {
                 b.vx = -b.vx;
                 bounced = true;
             }
+            // 顶部边界反弹
             if (b.y - b.radius <= 0) {
                 b.y = b.radius + 1;
                 b.vy = -b.vy;
                 bounced = true;
             }
-            if (b.y + b.radius >= this.height) {
-                b.y = this.height - b.radius - 1;
-                b.vy = -b.vy;
-                bounced = true;
+            // 炮弹飞出底部自动消失
+            if (b.y - b.radius > this.height) {
+                this.bullets.splice(i, 1);
+                continue;
             }
 
             if (bounced) {
@@ -278,12 +224,6 @@ const game = {
                     this.bullets.splice(i, 1);
                     continue;
                 }
-            }
-
-            // 出左边屏幕了，这颗子弹没了
-            if (b.x < -b.radius * 2) {
-                this.bullets.splice(i, 1);
-                continue;
             }
 
             // 碰撞检测僵尸
@@ -331,10 +271,10 @@ const game = {
                 z.poison--;
             }
 
-            z.x -= z.speed;
+            z.y += z.speed;
 
-            // 走到基地了
-            if (z.x + z.size < this.startX - 10) {
+            // 走到基地了（底部），扣血
+            if (z.y - z.size > this.startY) {
                 this.baseHp--;
                 this.zombies.splice(i, 1);
                 this.updateUI();
@@ -348,8 +288,8 @@ const game = {
         // 更新技能球
         for (let i = this.orbs.length - 1; i >= 0; i--) {
             const o = this.orbs[i];
-            o.x -= 0.5; // 慢慢飘向基地
-            // 玩家捡到了吗？距离基地近
+            o.y += 1; // 慢慢飘向底部
+            // 玩家捡到了吗？距离基地起点近
             const dx = o.x - this.startX;
             const dy = o.y - this.startY;
             const dist = Math.sqrt(dx * dx + dy * dy);
@@ -362,34 +302,31 @@ const game = {
                     this.state = 'waiting';
                     this.openSkillSelect();
                 }
-                continue;
             }
         }
 
-        // 检查本波是否打完
-        if (this.zombies.length === 0 && this.state === 'firing') {
+        // 检查本波僵尸是否都死了
+        if (this.zombies.length === 0 && this.state === 'fighting') {
             this.wave++;
             this.spawnWave();
-            this.state = 'aiming';
-            this.updateUI();
-        }
-
-        // 核弹技能直接清屏
-        if (this.skills.find(s => s.id === 'nuke')) {
-            // 用了就移除
-            this.skills = this.skills.filter(s => s.id !== 'nuke');
-            this.zombies.forEach(z => z.hp = 0);
         }
     },
 
+    getFireRateBoost: function() {
+        let mul = 1;
+        this.skills.forEach(s => {
+            if (s.fireRateMul) mul *= s.fireRateMul;
+        });
+        return mul;
+    },
+
+    // 击中僵尸
     hitZombie: function(zombie, bullet) {
         zombie.hp -= bullet.damage;
-
         // 燃烧效果
         if (this.hasFire()) {
             zombie.burning = 120; // 2秒
         }
-
         // 毒效果
         if (this.hasPoison()) {
             zombie.poison = 180; // 3秒
@@ -397,17 +334,43 @@ const game = {
 
         // 死了
         if (zombie.hp <= 0) {
+            // 给经验金币
+            this.exp += zombie.rewardExp;
+            this.money += zombie.rewardMoney;
             this.totalKills++;
-            // 闪电链
-            if (this.hasLightning()) {
-                this.lightningJump(zombie, this.getLightningJumps());
+
+            // 检查升级
+            if (this.exp >= this.expToNext) {
+                this.levelUp();
             }
+
             // 几率掉技能球
             if (Math.random() < (1 / (5 + this.wave * 0.2))) {
                 this.spawnOrb(zombie.x, zombie.y);
             }
+
+            // 闪电链
+            if (this.hasLightning()) {
+                this.lightningJump(zombie, this.getLightningJumps());
+            }
+
+            // 核弹技能直接清屏
+            if (this.skills.find(s => s.id === 'nuke')) {
+                this.zombies = [];
+            }
+
             this.zombies = this.zombies.filter(z => z !== zombie);
         }
+    },
+
+    levelUp: function() {
+        this.exp = this.exp - this.expToNext;
+        this.playerLevel++;
+        this.expToNext = Math.floor(this.expToNext * 1.5);
+        this.updateUI();
+        // 弹出三个选项选一个
+        this.state = 'waiting';
+        this.openLevelUpSelect();
     },
 
     // 爆炸伤害
@@ -417,7 +380,7 @@ const game = {
             const dy = y - z.y;
             const dist = Math.sqrt(dx * dx + dy * dy);
             if (dist < radius + z.size) {
-                const damage = 20 * (1 - dist / (radius + z.size));
+                const damage = 20 * this.getDamageMul();
                 z.hp -= damage;
             }
         });
@@ -435,9 +398,10 @@ const game = {
                 vy: Math.sin(angle) * speed,
                 radius: parent.radius * 0.5,
                 damage: parent.damage * 0.5,
-                maxBounces: parent.maxBounces - parent.bounces,
+                maxBounces: parent.maxBounces,
                 bounces: parent.bounces,
-                pierceLeft: parent.pierceLeft
+                pierceLeft: parent.pierceLeft,
+                exploded: parent.exploded
             });
         }
     },
@@ -445,15 +409,15 @@ const game = {
     // 闪电链
     lightningJump: function(deadZombie, jumpsLeft) {
         if (jumpsLeft <= 0) return;
-        // 找最近的其他僵尸
+        // 找最近的其他僵尸跳过去
         let closest = null;
-        let minDist = 10000;
+        let minDist = 150;
         this.zombies.forEach(z => {
             if (z === deadZombie) return;
             const dx = z.x - deadZombie.x;
             const dy = z.y - deadZombie.y;
             const dist = Math.sqrt(dx * dx + dy * dy);
-            if (dist < 150 && dist < minDist) {
+            if (dist < minDist) {
                 minDist = dist;
                 closest = z;
             }
@@ -468,9 +432,78 @@ const game = {
         this.orbs.push({x: x, y: y, radius: 12});
     },
 
-    // === 技能选择 ===
+    // === 绘制 ===
+    render: function() {
+        if (!this.ctx) return;
+        const w = this.width;
+        const h = this.height;
+
+        // 清空
+        const gradient = this.ctx.createLinearGradient(0, 0, 0, h);
+        gradient.addColorStop(0, '#0d1b2a');
+        gradient.addColorStop(1, '#1b263b');
+        this.ctx.fillStyle = gradient;
+        this.ctx.fillRect(0, 0, w, h);
+
+        // 画玩家基地底线
+        this.ctx.strokeStyle = 'rgba(255, 215, 0, 0, 0.5)';
+        this.ctx.lineWidth = 3;
+        this.ctx.beginPath();
+        this.ctx.moveTo(0, this.startY);
+        this.ctx.lineTo(this.width, this.startY);
+        this.ctx.stroke();
+
+        // 画僵尸
+        this.zombies.forEach(z => {
+            // 血条
+            const barWidth = z.size * 2;
+            const barHeight = 4;
+            this.ctx.fillStyle = 'rgba(0, 0, 0, 0, 0.5)';
+            this.ctx.fillRect(z.x - barWidth/2, z.y - z.size - 8, barWidth, barHeight);
+            this.ctx.fillStyle = '#f44336';
+            this.ctx.fillRect(z.x - barWidth/2, z.y - z.size - 8, barWidth * (z.hp / z.maxHp), barHeight);
+
+            // 僵尸身体
+            this.ctx.fillStyle = z.color;
+            this.ctx.beginPath();
+            this.ctx.arc(z.x, z.y, z.size, 0, Math.PI * 2);
+            this.ctx.fill();
+            // 边框
+            this.ctx.strokeStyle = '#fff';
+            this.ctx.lineWidth = 2;
+            this.ctx.stroke();
+        });
+
+        // 画炮弹
+        this.ctx.fillStyle = '#00d4ff';
+        this.bullets.forEach(b => {
+            this.ctx.beginPath();
+            this.ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
+            this.ctx.fill();
+        });
+
+        // 画技能球
+        this.orbs.forEach(o => {
+            const gradient = this.ctx.createRadialGradient(o.x, o.y, 0, o.x, o.y, o.radius);
+            gradient.addColorStop(0, '#FFD700');
+            gradient.addColorStop(1, '#FFA000');
+            this.ctx.fillStyle = gradient;
+            this.ctx.beginPath();
+            this.ctx.arc(o.x, o.y, o.radius, 0, Math.PI * 2);
+            this.ctx.fill();
+            this.ctx.strokeStyle = '#fff';
+            this.ctx.lineWidth = 2;
+            this.ctx.stroke();
+        });
+    },
+
+    // === 捡技能球 => 三选一升级
+    openLevelUpSelect: function() {
+        this.openSkillSelect();
+    },
+
     openSkillSelect: function() {
-        // 随机出3个技能选一个
+        // 随机三个不同技能
         const options = this.pickSkillOptions(3);
         const container = document.getElementById('skill-options');
         let html = '';
@@ -488,27 +521,30 @@ const game = {
         document.getElementById('skill-modal').classList.add('show');
     },
 
+    // 打开技能选择弹窗（捡球或者升级都用）
     pickSkillOptions: function(count) {
         // 按稀有度权重随机
         const weights = {common: 50, rare: 30, epic: 15, legendary: 5};
         const available = this.skillData.filter(s => {
-            // 如果已经有了同名，几率降低
-            const has = this.skills.find(sk => sk.id === s.id);
+            // 可以重复选，但是几率降低
+            const has = this.skills.find(s => s.id === s.id);
             if (has) return Math.random() < 0.2; // 20% 概率可以重复选
             return true;
         });
-
         const picked = [];
-        while (picked.length < count && available.length > 0) {
-            let totalWeight = 0;
-            available.forEach(s => totalWeight += weights[s.rarity]);
+        let totalWeight = 0;
+        available.forEach(s => totalWeight += weights[s.rarity]);
+
+        for (let i = 0; i < count; i++) {
             let rand = Math.random() * totalWeight;
             let cumulative = 0;
-            for (let i = 0; i < available.length; i++) {
-                cumulative += weights[available[i].rarity];
+            for (let j = 0; j < available.length; j++) {
+                const s = available[j];
+                cumulative += weights[s.rarity];
                 if (rand <= cumulative) {
-                    picked.push(available[i]);
-                    available.splice(i, 1);
+                    picked.push(s);
+                    available.splice(j, 1);
+                    totalWeight -= weights[s.rarity];
                     break;
                 }
             }
@@ -520,17 +556,15 @@ const game = {
         const skill = this.skillData.find(s => s.id === skillId);
         if (skill.id === 'heal') {
             this.baseHp += skill.healAmount;
-            this.updateUI();
         } else if (skill.id === 'money') {
             this.skillOrbs += skill.extraOrb;
-            this.updateUI();
         } else {
             this.skills.push(skill);
         }
+        // 升级用掉一个技能球
         this.skillOrbs--;
-        this.renderSkills();
         document.getElementById('skill-modal').classList.remove('show');
-        this.state = 'aiming';
+        this.state = 'fighting';
         this.updateUI();
     },
 
@@ -561,20 +595,17 @@ const game = {
         });
         return p;
     },
-    getInfinitePierce: function() {
-        return this.skills.some(s => s.infinitePierce);
+    getDamageMul: function() {
+        let mul = 1;
+        this.skills.forEach(s => {
+            if (s.damageMul) mul *= s.damageMul;
+        });
+        return mul;
     },
     getSizeMul: function() {
         let mul = 1;
         this.skills.forEach(s => {
             if (s.sizeMul) mul *= s.sizeMul;
-        });
-        return mul;
-    },
-    getDamageMul: function() {
-        let mul = 1;
-        this.skills.forEach(s => {
-            if (s.damageMul) mul *= s.damageMul;
         });
         return mul;
     },
@@ -586,11 +617,11 @@ const game = {
         return dps;
     },
     getPoisonPercent: function() {
-        let p = 0;
+        let pct = 0;
         this.skills.forEach(s => {
-            if (s.poisonDamage) p += s.poisonDamage;
+            if (s.poisonDamage) pct += s.poisonDamage;
         });
-        return p;
+        return pct;
     },
     getExplosionRadius: function() {
         let r = 30;
@@ -606,127 +637,51 @@ const game = {
         });
         return j;
     },
-
-    // === 绘制 ===
-    render: function() {
-        const ctx = this.ctx;
-        // 清空
-        ctx.fillStyle = '#0d1b2a';
-        ctx.fillRect(0, 0, this.width, this.height);
-
-        // 画基地
-        ctx.fillStyle = '#FFD700';
-        ctx.beginPath();
-        ctx.arc(this.startX, this.startY, 25, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = '#1a1a2e';
-        ctx.beginPath();
-        ctx.arc(this.startX, this.startY, 15, 0, Math.PI * 2);
-        ctx.fill();
-
-        // 画瞄准线
-        if (this.state === 'aiming' && this.powerInterval) {
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(this.startX, this.startY);
-            const endX = this.startX + Math.cos(this.aimAngle) * 50;
-            const endY = this.startY + Math.sin(this.aimAngle) * 50;
-            ctx.lineTo(endX, endY);
-            ctx.stroke();
-        }
-
-        // 画僵尸
-        this.zombies.forEach(z => {
-            // 阴影
-            ctx.fillStyle = z.color;
-            ctx.beginPath();
-            ctx.arc(z.x, z.y, z.size, 0, Math.PI * 2);
-            ctx.fill();
-            // 血条
-            const barWidth = z.size * 2;
-            const barHeight = 4;
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-            ctx.fillRect(z.x - barWidth / 2, z.y - z.size - 8, barWidth, barHeight);
-            ctx.fillStyle = '#f44336';
-            ctx.fillRect(z.x - barWidth / 2, z.y - z.size - 8, barWidth * (z.hp / z.maxHp), barHeight);
-            // 特效
-            if (z.burning > 0) {
-                ctx.strokeStyle = '#FF5722';
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.arc(z.x, z.y, z.size + 5, 0, Math.PI * 2);
-                ctx.stroke();
-            }
-            if (z.poison > 0) {
-                ctx.strokeStyle = '#4CAF50';
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.arc(z.x, z.y, z.size + 5, 0, Math.PI * 2);
-                ctx.stroke();
-            }
-        });
-
-        // 画炮弹
-        ctx.fillStyle = '#00d4ff';
-        this.bullets.forEach(b => {
-            ctx.beginPath();
-            ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
-            ctx.fill();
-        });
-
-        // 画技能球
-        this.orbs.forEach(o => {
-            const gradient = ctx.createRadialGradient(o.x, o.y, 0, o.x, o.y, o.radius);
-            gradient.addColorStop(0, '#FFD700');
-            gradient.addColorStop(1, '#FFA000');
-            ctx.fillStyle = gradient;
-            ctx.beginPath();
-            ctx.arc(o.x, o.y, o.radius, 0, Math.PI * 2);
-            ctx.fill();
-            // 边框
-            ctx.strokeStyle = '#fff';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-        });
-
-        // 画瞄准预览
-        if (this.state === 'aiming' && this.power > 0) {
-            ctx.strokeStyle = `rgba(255, 215, 0, ${0.3 + this.power / 100 * 0.4})`;
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-            ctx.moveTo(this.startX, this.startY);
-            ctx.arc(this.startX, this.startY, this.power * 2, 0, this.aimAngle);
-            ctx.lineTo(this.startX + Math.cos(this.aimAngle) * this.power * 2, this.startY + Math.sin(this.aimAngle) * this.power * 2);
-            ctx.stroke();
-        }
+    getInfinitePierce: function() {
+        return this.skills.some(s => s.infinitePierce);
     },
 
-    gameLoop: function() {
-        this.update();
-        this.render();
-        requestAnimationFrame(() => this.gameLoop());
+    // === 计算子弹参数，发射 ===
+    spawnBullet: function(angle) {
+        const speed = (this.power / 100) * 15;
+        const maxBounces = 3 + this.getTotalExtraBounces();
+        const pierce = this.getInfinitePierce() ? 999 : (1 + this.getTotalPierce());
+        const damageMul = this.getDamageMul();
+        const sizeMul = this.getSizeMul();
+        const size = 6 * sizeMul;
+        const damage = 10 * damageMul;
+        this.bullets.push({
+            x: this.startX,
+            y: this.startY,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            radius: size,
+            damage: damage,
+            maxBounces: maxBounces,
+            bounces: 0,
+            pierceLeft: pierce,
+            exploded: false
+        });
     },
 
     // === UI ===
     updateUI: function() {
+        document.getElementById('playerLevel').textContent = this.playerLevel;
         document.getElementById('wave').textContent = this.wave;
         document.getElementById('hp').textContent = Math.max(0, Math.floor(this.baseHp));
         document.getElementById('skill-orbs').textContent = this.skillOrbs;
+        // 更新经验条
+        const pct = (this.exp / this.expToNext) * 100;
+        document.getElementById('exp-fill').style.width = pct + '%';
+        document.getElementById('exp-text').textContent = `${Math.floor(this.exp)}/${this.expToNext}`;
     },
 
     renderSkills: function() {
-        const container = document.getElementById('skills-list');
-        if (this.skills.length === 0) {
-            container.innerHTML = '<span style="opacity: 0.5;">还没有技能...</span>';
-            return;
-        }
-        let html = '';
-        this.skills.forEach(s => {
-            const rarityClass = `rarity-${s.rarity}`;
-            html += `<span class="skill-tag ${rarityClass}">${s.name}</span>`;
-        });
-        container.innerHTML = html;
+        // unused now
+    },
+
+    hideGameOver: function() {
+        document.getElementById('game-over-modal').classList.remove('show');
     },
 
     gameOver: function() {
@@ -736,11 +691,59 @@ const game = {
         document.getElementById('game-over-modal').classList.add('show');
     },
 
-    hideGameOver: function() {
-        document.getElementById('game-over-modal').classList.remove('show');
+    // === 弹窗 ===
+    openSkillSelect: function() {
+        // 随机三个不同技能
+        const options = this.pickSkillOptions(3);
+        const container = document.getElementById('skill-options');
+        let html = '';
+        options.forEach(skill => {
+            const rarityClass = `rarity-${skill.rarity}`;
+            html += `
+                <div class="skill-option" onclick="game.selectSkill('${skill.id}')">
+                    <span class="skill-rarity ${rarityClass}">${skill.rarity}</span>
+                    <div class="skill-name">${skill.name}</div>
+                    <div class="skill-desc">${skill.description}</div>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+        document.getElementById('skill-modal').classList.add('show');
+    },
+
+    hideSkillSelect: function() {
+        document.getElementById('skill-modal').classList.remove('show');
+    },
+
+    showToast: function(text) {
+        const toast = document.createElement('div');
+        toast.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            z-index: 9999;
+        `;
+        toast.textContent = text;
+        document.body.appendChild(toast);
+        setTimeout(() => {
+            document.body.removeChild(toast);
+        }, 2000);
+    },
+
+    gameLoop: function() {
+        this.update();
+        this.render();
+        requestAnimationFrame(() => this.gameLoop());
     }
 };
 
+// 重启游戏
 function restartGame() {
     game.startNewGame();
+    game.startFighting();
 }
