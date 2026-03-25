@@ -278,8 +278,8 @@ const game = {
         // 计算浮漂终点：根据力度决定距离岸边多远
         const startX = this.width * 0.2;
         const endX = this.width * 0.2 + (this.width * 0.6 * (this.power / 100));
-        this.floatY = this.height * 0.3;
         const startY = this.height * 0.1;
+        this.floatY = this.height * 0.3;
         const steps = 30;
         let step = 0;
 
@@ -336,6 +336,7 @@ const game = {
                 }
             }
         }, 33);
+        this.biteStartTime = Date.now();
     },
 
     // === 拉杆 ===
@@ -365,7 +366,11 @@ const game = {
         }
 
         if (success) {
-            this.catchFish(fish);
+            if (fish.special) {
+                this.catchSpecial(fish);
+            } else {
+                this.catchFish(fish);
+            }
         } else {
             this.showToast(`${fish.name}挣脱了鱼钩...`);
             this.resetToIdle();
@@ -377,8 +382,7 @@ const game = {
         // 5%概率特殊收获
         if (Math.random() < 0.05) {
             const special = this.rollSpecial();
-            this.catchSpecial(special);
-            return null;
+            return {special: true, ...special};
         }
 
         const location = this.getCurrentLocation();
@@ -414,7 +418,7 @@ const game = {
             available = this.fishData.filter(f => f.location === location.id);
         }
         const fish = available[Math.floor(Math.random() * available.length)];
-        return fish;
+        return {special: false, ...fish};
     },
 
     rollSpecial: function() {
@@ -422,9 +426,13 @@ const game = {
         const weights = {common: 60, rare: 30, epic: 10};
         const rand = Math.random() * 100;
         let rarity;
-        if (rand < weights.common) rarity = 'common';
-        else if (rand < weights.common + weights.rare) rarity = 'rare';
-        else rarity = 'epic';
+        if (rand < weights.common) {
+            rarity = 'common';
+        } else if (rand < weights.common + weights.rare) {
+            rarity = 'rare';
+        } else {
+            rarity = 'epic';
+        }
         const available = this.specialLoot.filter(s => s.rarity === rarity);
         return available[Math.floor(Math.random() * available.length)];
     },
@@ -473,12 +481,11 @@ const game = {
         this.renderBook();
 
         const rarityText = {
-            common: '普通', rare: '稀有', epic: '史诗', legendary: '传说'
+            common: '普通', rare: '稀有', epic: '史诗', legendary: 'legendary'
         };
-        const rarityClass = `fish-rarity-${fish.rarity}`;
         let html = `
             <div style="font-size: 48px;">${fish.icon}</div>
-            <p style="font-size: 22px; margin: 10px 0 0;">${fish.name} <span class="rarity-tag ${rarity}">${rarityText[fish.rarity]}</span></p>
+            <p style="font-size: 22px; margin: 10px 0 0;">${fish.name} <span class="rarity-tag ${fish.rarity}">${rarityText[fish.rarity]}</span></p>
             <p>重量: ${(weight / 1000).toFixed(2)} kg</p>
             <p>卖价: ${price} 金币</p>
         `;
@@ -532,7 +539,7 @@ const game = {
         // 鱼竿弯度根据蓄力
         const bend = this.state === 'charging' ? (this.power / 100) * 20 : 5;
         this.ctx.beginPath();
-        this.ctx.moveTo(w * 0.25, h * 0.8);
+        this.ctx.moveTo(w * 0.25, h * 0.8 + 5);
         this.ctx.quadraticCurveTo(
             this.floatX / 2, h * 0.8 + bend,
             this.floatX, this.floatY - 20
@@ -731,40 +738,4 @@ const game = {
 
     // === 弹窗 ===
     showResultModal: function(title, content) {
-        document.getElementById('resultTitle').textContent = title;
-        document.getElementById('resultContent').innerHTML = content;
-        document.getElementById('resultModal').classList.add('show');
-    },
-
-    hideResultModal: function() {
-        document.getElementById('resultModal').classList.remove('show');
-    },
-
-    showToast: function(text) {
-        const toast = document.getElementById('toast');
-        toast.textContent = text;
-        toast.classList.add('show');
-        setTimeout(() => toast.classList.remove('show'), 2000);
-    },
-
-    // === getters ===
-    getCurrentLocation: function() {
-        return this.locations.find(l => l.id === this.currentLocationId);
-    },
-
-    getCurrentBait: function() {
-        return this.baits.find(b => b.id === this.currentBaitId);
-    },
-
-    getCurrentRod: function() {
-        return this.rodLevels[this.rodLevel - 1];
-    },
-
-    get biteStartTime() {
-        return this._biteStartTime || Date.now();
-    },
-
-    set biteStartTime(t) {
-        this._biteStartTime = t;
-    }
-};
+        document.getElementById('resultTitle').text
