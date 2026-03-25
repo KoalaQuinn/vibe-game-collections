@@ -2,11 +2,11 @@
 // 玩法：拖动瞄准，蓄力发射，炮弹反弹，击杀僵尸，捡技能球，选技能
 
 const game = {
-    // Canvas
+    // Canvas - 竖屏适配手机
     canvas: null,
     ctx: null,
-    width: 800,
-    height: 400,
+    width: 400,
+    height: 700,
 
     // 游戏状态
     state: 'aiming', // aiming / firing / waiting
@@ -15,9 +15,9 @@ const game = {
     skillOrbs: 0,
     totalKills: 0,
 
-    // 瞄准
+    // 瞄准 - 左下角发射
     startX: 40,
-    startY: 200,
+    startY: 350,
     aimAngle: 0.785, // 45度 default
     power: 0,
     powerDirection: 1,
