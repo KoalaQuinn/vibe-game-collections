@@ -58,7 +58,7 @@ const game = {
     zombieTypes: [
         {name: '普通僵尸', hp: 10, speed: 0.5, size: 20, reward: 1, color: '#4CAF50'},
         {name: '快鬼', hp: 8, speed: 1.2, size: 18, reward: 2, color: '#FF9800'},
-        {name: '大胖', hp: 30, speed: 0.2, size: 35, reward: 3, color: 'F44336'},
+        {name: '大胖', hp: 30, speed: 0.2, size: 35, reward: 3, color: '#F44336'},
         {name: '坦克', hp: 100, speed: 0.1, size: 50, reward: 10, color: '#9C27B0'},
     ],
 
