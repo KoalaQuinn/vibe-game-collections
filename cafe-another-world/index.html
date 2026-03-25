@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>异界小吃店 - 美食经营gal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #2c1810 0%, #1a0f0a 100%);
+            min-height: 100vh;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+        }
+
+        .game-container {
+            width: 100%;
+            max-width: 900px;
+            height: 600px;
+            background: #1e1e1e;
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        @media (max-width: 600px) {
+            .game-container {
+                height: 90vh;
+            }
+        }
+
+        /* 背景场景 */
+        .scene {
+            flex: 1;
+            position: relative;
+            background: linear-gradient(to bottom, #8b5a2b 0%, #a06640 100%);
+            overflow: hidden;
+        }
+
+        .bg-image {
+            width: 100%;
+            height: 100%;
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300"><rect fill="%238b5a2b" width="400" height="300"/><rect fill="%237a4a22" y="250" width="400" height="50"/><circle fill="%23654321" cx="100" cy="80" r="30"/><circle fill="%23654321" cx="250" cy="120" r="45"/><circle fill="%23654321" cx="350" cy="60" r="25"/></svg>');
+            background-size: cover;
+            opacity: 0.3;
+        }
+
+        /* 角色立绘 */
+        .character {
+            position: absolute;
+            bottom: 0;
+            width: 200px;
+            height: 280px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+        }
+
+        .character.left {
+            left: 20px;
+        }
+
+        .character.right {
+            right: 20px;
+        }
+
+        .character-avatar {
+            width: 160px;
+            height: 240px;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 80px;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .character-nameplate {
+            position: absolute;
+            top: -25px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-weight: bold;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .character-affinity {
+            position: absolute;
+            bottom: -25px;
+            width: 100%;
+            height: 8px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .affinity-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b9d 0%, #c44569 100%);
+            transition: width 0.5s;
+        }
+
+        /* 对话框 */
+        .dialog-box {
+            height: 180px;
+            background: rgba(0, 0, 0, 0.85);
+            padding: 15px;
+            border-top: 2px solid #d4a574;
+        }
+
+        .speaker-name {
+            font-size: 1rem;
+            font-weight: bold;
+            color: #ffd700;
+            margin-bottom: 8px;
+        }
+
+        .dialog-text {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            min-height: 80px;
+        }
+
+        /* 选项按钮 */
+        .choices {
+            margin-top: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .choice-btn {
+            background: rgba(212, 165, 116, 0.2);
+            border: 1px solid #d4a574;
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: left;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+        }
+
+        .choice-btn:hover {
+            background: rgba(212, 165, 116, 0.4);
+            border-color: #ffd700;
+        }
+
+        /* 底部状态栏 */
+        .status-bar {
+            height: 50px;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            border-top: 1px solid #d4a574;
+        }
+
+        .status-item {
+            text-align: center;
+        }
+
+        .status-label {
+            font-size: 0.7rem;
+            opacity: 0.7;
+        }
+
+        .status-value {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #ffd700;
+        }
+
+        /* 开始界面 */
+        .start-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #2c1810 0%, #1a0f0a 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .start-screen h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #ffd700;
+            text-shadow: 2px 2px 0 #000;
+        }
+
+        .start-screen p {
+            margin-bottom: 30px;
+            opacity: 0.8;
+            text-align: center;
+            padding: 0 20px;
+        }
+
+        .start-btn {
+            padding: 15px 50px;
+            font-size: 1.3rem;
+            background: linear-gradient(90deg, #d4a574 0%, #b88646 100%);
+            border: none;
+            border-radius: 25px;
+            color: #fff;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .start-btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* 烹饪界面 */
+        .cooking-modal {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 50;
+            padding: 20px;
+        }
+
+        .cooking-modal.show {
+            display: block;
+        }
+
+        .cooking-modal h3 {
+            text-align: center;
+            margin-bottom: 15px;
+            color: #ffd700;
+        }
+
+        .menu-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .menu-item {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #d4a574;
+            border-radius: 8px;
+            padding: 10px;
+            cursor: pointer;
+        }
+
+        .menu-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .menu-item.locked {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .menu-name {
+            font-weight: bold;
+            color: #ffd700;
+            margin-bottom: 3px;
+        }
+
+        .menu-price {
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+
+        .close-cooking {
+            display: block;
+            margin: 15px auto 0;
+            padding: 10px 30px;
+            background: #666;
+            border: none;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        /* 营业界面按钮 */
+        .action-buttons {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-btn {
+            padding: 8px 16px;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid #ffd700;
+            color: #ffd700;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .action-btn:hover {
+            background: rgba(255, 215, 0, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="scene">
+            <div class="bg-image"></div>
+
+            <div class="action-buttons">
+                <button class="action-btn" onclick="game.openCooking()">📜 菜谱</button>
+            </div>
+
+            <div id="character-left" class="character left">
+                <div class="character-nameplate" id="left-name"></div>
+                <div class="character-avatar" id="left-avatar"></div>
+                <div class="character-affinity">
+                    <div class="affinity-fill" id="left-affinity"></div>
+                </div>
+            </div>
+
+            <div id="character-right" class="character right">
+                <div class="character-nameplate" id="right-name"></div>
+                <div class="character-avatar" id="right-avatar"></div>
+                <div class="character-affinity">
+                    <div class="affinity-fill" id="right-affinity"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="dialog-box">
+            <div class="speaker-name" id="speaker-name"></div>
+            <div class="dialog-text" id="dialog-text"></div>
+            <div class="choices" id="choices"></div>
+        </div>
+
+        <div class="status-bar">
+            <div class="status-item">
+                <div class="status-label">金币</div>
+                <div class="status-value" id="money">0</div>
+            </div>
+            <div class="status-item">
+                <div class="status-label">声望</div>
+                <div class="status-value" id="reputation">0</div>
+            </div>
+            <div class="status-item">
+                <div class="status-label">已解锁菜谱</div>
+                <div class="status-value" id="unlocked-recipes">1</div>
+            </div>
+        </div>
+
+        <!-- 开始界面 -->
+        <div id="start-screen" class="start-screen">
+            <h1>🍜 异界小吃店</h1>
+            <p>一间开在边境的小店，偶然连通了异世界...<br>用地球美食征服异界客人吧！</p>
+            <button class="start-btn" onclick="game.startGame()">开始营业</button>
+        </div>
+
+        <!-- 选择菜谱弹窗 -->
+        <div id="cooking-modal" class="cooking-modal">
+            <h3>📜 今天做点什么菜？</h3>
+            <div id="menu-list" class="menu-list"></div>
+            <button class="close-cooking" onclick="game.closeCooking()">关闭</button>
+        </div>
+    </div>
+
+    <script src="data.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>
