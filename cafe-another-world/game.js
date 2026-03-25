@@ -46,7 +46,10 @@ const game = {
         }
 
         this.currentCustomer = customer;
-        this.showDialogue(customer.firstMeet, customer);
+        // 找第一个可显示的对话
+        const firstDialogue = customer.dialogues.find(d => d.affinityReq <= customer.affinity);
+        this.showDialogue(firstDialogue ? firstDialogue.text : customer.firstMeet, customer);
+        this.showChoices(firstDialogue);
         this.renderCharacters();
     },
 
