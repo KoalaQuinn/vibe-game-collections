@@ -287,8 +287,8 @@ const game = {
             }
 
             // 碰撞检测僵尸
-            for (let z = this.zombies.length - 1; z >= 0; z--) {
-                const z = this.zombies[z];
+            for (let i = this.zombies.length - 1; i >= 0; i--) {
+                const z = this.zombies[i];
                 const dx = b.x - z.x;
                 const dy = b.y - z.y;
                 const dist = Math.sqrt(dx * dx + dy * dy);
