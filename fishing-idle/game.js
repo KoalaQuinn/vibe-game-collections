@@ -19,11 +19,11 @@ const game = {
             baseCost: 0,
             upgradeCost: 50,
             fishPerMinute: 2, // 每分钟产出鱼基数
-                fishTypes: {
-            'small-fish': 70,
-            'medium-fish': 25,
-            'big-fish': 5
-        }
+            fishTypes: {
+                'small-fish': 70,
+                'medium-fish': 25,
+                'big-fish': 5
+            }
         },
         {
             id: 'river',
@@ -169,7 +169,6 @@ const game = {
         this.lastUpdate = Date.now();
         this.renderAll();
         this.gameLoop();
-        this.save();
     },
 
     // 游戏循环 - 离线收益计算
@@ -450,14 +449,7 @@ const game = {
         const fishPerSecond = fishPerMinute / 60;
         let expectedValue = 0;
 
-        // 简化计算：平均价值
-        const processingUpgrade = this.getUpgrade('processing');
-        let priceMultiplier = 1;
-        if (processingUpgrade) {
-            priceMultiplier = Math.pow(1.15, processingUpgrade.level);
-        }
-
-        // 平均每条鱼大概价值按所有可能的加权算一下
+        // 平均价值算一下
         this.ponds.filter(p => p.unlocked).forEach(pond => {
             let pondTotalRate = 0;
             let pondValue = 0;
@@ -524,7 +516,7 @@ const game = {
                     <div class="worker-item">
                         <div class="worker-info">
                             <h4>${worker.name}</h4>
-                            <p>基础效率: ${worker.efficiency.toFixed(1)}x</p>
+                            <p class="worker-level">基础效率: ${worker.efficiency.toFixed(1)}x</p>
                         </div>
                         <button class="upgrade-btn unlock-btn" onclick="game.hireWorker('${worker.id}')" ${this.money >= worker.hireCost ? '' : 'disabled'}>雇佣 ${worker.hireCost} 金</button>
                     </div>
@@ -613,12 +605,13 @@ const game = {
             totalFishCaught: this.totalFishCaught,
             fishStock: this.fishStock,
             ponds: this.ponds.map(p => ({id: p.id, level: p.level, unlocked: p.unlocked})),
-            workers: this.workers.map(w => ({id: w.id, level: w.level, canWork: w.canWork})),
-            upgrades: this.upgrades.map(u => ({id: u.id, level: u.level}))
+            workers: this.workers.map(w => ({id: w.id, level: w.level, canWork: w.canWork)),
+            upgrades: this.upgrades.map(u => ({id: u.id, level: u.level))
         };
         localStorage.setItem('fishing-idle', JSON.stringify(data));
     },
 
+    // 读档
     load: function() {
         const save = localStorage.getItem('fishing-idle');
         if (save) {
@@ -627,7 +620,6 @@ const game = {
             this.totalMoneyEarned = data.totalMoneyEarned || 0;
             this.totalFishCaught = data.totalFishCaught || 0;
             this.fishStock = data.fishStock || {};
-
             if (data.ponds) {
                 data.ponds.forEach(sp => {
                     const p = this.ponds.find(p => p.id === sp.id);
@@ -656,27 +648,6 @@ const game = {
             }
         }
     },
-
-    // 弹窗
-    showToast: function(text) {
-        const toast = document.createElement('div');
-        toast.style.cssText = `
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 8px;
-            z-index: 9999;
-        `;
-        toast.textContent = text;
-        document.body.appendChild(toast);
-        setTimeout(() => {
-            document.body.removeChild(toast);
-        }, 2000);
-    }
 };
 
 // 标签页切换
