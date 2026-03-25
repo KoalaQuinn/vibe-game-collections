@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>钓鱼场经营 - 放置模拟</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background: linear-gradient(135deg, #1a4a6e 0%, #0d2b3f 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 10px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            padding: 15px 0;
+            margin-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+
+        .money {
+            font-size: 1.5rem;
+            color: #FFD700;
+            font-weight: bold;
+        }
+
+        .income {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        /* 主区域网格 */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        @media (max-width: 600px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .card h3 {
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 8px;
+        }
+
+        /* 钓点 */
+        .pond-item {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .pond-item.unlocked {
+            opacity: 0.5;
+        }
+
+        .pond-info h4 {
+            font-size: 1rem;
+            margin-bottom: 3px;
+        }
+
+        .pond-info p {
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+
+        .upgrade-btn {
+            background: linear-gradient(90deg, #4CAF50 0%, #2E7D32 100%);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .upgrade-btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+
+        .unlock-btn {
+            background: linear-gradient(90deg, #FF9800 0%, #E65100 100%);
+        }
+
+        /* 员工 */
+        .worker-item {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .worker-level {
+            font-size: 0.9rem;
+            color: #81D4FA;
+        }
+
+        /* 统计 */
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .stat-item {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #81D4FA;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+
+        /* 出售区域 */
+        .sell-section {
+            text-align: center;
+            padding: 15px;
+        }
+
+        .sell-btn {
+            background: linear-gradient(90deg, #FF5722 0%, #E64A19 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .sell-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .sell-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* 进度条 */
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50 0%, #8BC34A 100%);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        /* 标签页 */
+        .tabs {
+            display: flex;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            padding: 5px;
+            margin-bottom: 15px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            border-radius: 6px;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            background: rgba(255, 255, 255, 0.2);
+            opacity: 1;
+            font-weight: bold;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .fish-stock {
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+        }
+
+        .fish-stock h4 {
+            margin-bottom: 8px;
+        }
+
+        .fish-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 8px;
+        }
+
+        .fish-stock-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 5px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎣 钓鱼场经营</h1>
+            <div class="money">💰 <span id="money">0</span> 金币</div>
+            <div class="income">每秒收益: <span id="incomePerSecond">0</span> 金币</div>
+        </header>
+
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('ponds')">渔场</div>
+            <div class="tab" onclick="switchTab('workers')">员工</div>
+            <div class="tab" onclick="switchTab('upgrades')">升级</div>
+            <div class="tab" onclick="switchTab('stats')">统计</div>
+        </div>
+
+        <!-- 渔场 -->
+        <div id="ponds" class="tab-content active">
+            <div class="card" id="ponds-container"></div>
+        </div>
+
+        <!-- 员工 -->
+        <div id="workers" class="tab-content">
+            <div class="card" id="workers-container"></div>
+        </div>
+
+        <!-- 升级 -->
+        <div id="upgrades" class="tab-content">
+            <div class="card">
+                <h3>全局升级</h3>
+                <div id="upgrades-container"></div>
+            </div>
+        </div>
+
+        <!-- 统计 -->
+        <div id="stats" class="tab-content">
+            <div class="card">
+                <h3>统计信息</h3>
+                <div class="stats">
+                    <div class="stat-item">
+                        <div class="stat-value" id="stat-totalFish">0</div>
+                        <div class="stat-label">钓到的鱼</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="stat-totalMoney">0</div>
+                        <div class="stat-label">总收入</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="stat-pondsUnlocked">1</div>
+                        <div class="stat-label">解锁渔场</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="stat-workersHired">0</div>
+                        <div class="stat-label">雇佣员工</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 当前存货 -->
+        <div class="card fish-stock">
+            <h4>🐟 当前存货</h4>
+            <div id="fish-stock-list" class="fish-list"></div>
+        </div>
+
+        <!-- 出售按钮 -->
+        <div class="sell-section">
+            <button id="sell-all-btn" class="sell-btn" onclick="sellAllFish()">出售全部存货</button>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+    <script>
+        // 启动游戏
+        game.init();
+    </script>
+</body>
+</html>
