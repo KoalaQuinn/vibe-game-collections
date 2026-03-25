@@ -125,13 +125,13 @@ const game = {
 
     initDefaultData: function() {
         // 初始化经脉
-        this.definitions.meridians.forEach(m => {
+        game.definitions.meridians.forEach(m => {
             if (!this.meridians.hasOwnProperty(m.name)) {
                 this.meridians[m.name] = false;
             }
         });
         // 初学基础技能
-        for (let id in this.definitions.skills) {
+        for (let id in game.definitions.skills) {
             if (!this.skills.hasOwnProperty(id)) {
                 this.skills[id] = {level: 0};
             }
@@ -169,7 +169,7 @@ const game = {
 
         // 如果在闯荡，额外收益（经验和掉落还是直接在弹窗领取，修为还是去积累池）
         if (this.adventure.isAdventuring && this.adventure.currentArea) {
-            const area = this.definitions.areas[this.adventure.currentArea];
+            const area = game.definitions.areas[this.adventure.currentArea];
             totalExp += elapsedMinutes * area.expPerMin;
             newXiuwei += elapsedMinutes * area.xiuweiPerMin;
 
@@ -203,7 +203,7 @@ const game = {
             let html = `<ul>`;
             if (totalExp > 0) html += `<li>经验 +${totalExp}</li>`;
             for (let item in drops) {
-                const name = this.definitions.items[item].name;
+                const name = game.definitions.items[item].name;
                 html += `<li>${name} +${drops[item]}</li>`;
             }
             html += `</ul>`;
@@ -291,7 +291,7 @@ const game = {
             if (this.adventure.isAdventuring && this.adventure.currentArea) {
                 const advElapsed = (now - this.lastAdventureXiuweiTime) / 1000;
                 if (advElapsed >= 1) {
-                    const area = this.definitions.areas[this.adventure.currentArea];
+                    const area = game.definitions.areas[this.adventure.currentArea];
                     this.player.xiuwei += area.xiuweiPerMin * advElapsed;
                     this.player.exp += area.expPerMin * advElapsed;
                     this.lastAdventureXiuweiTime = now;
@@ -322,7 +322,7 @@ const game = {
 
     // 生成敌人
     spawnEnemy: function() {
-        const area = this.definitions.areas[this.adventure.currentArea];
+        const area = game.definitions.areas[this.adventure.currentArea];
         const hp = Math.floor(Math.random() * (area.hpMax - area.hpMin + 1)) + area.hpMin;
         const attack = Math.floor(Math.random() * (area.atkMax - area.atkMin + 1)) + area.atkMin;
         // 根据区域给敌人不同名字
@@ -380,7 +380,7 @@ const game = {
             let usedSkill = null;
             
             if (this.equippedSkills.outer) {
-                const skillDef = this.definitions.skills[this.equippedSkills.outer];
+                const skillDef = game.definitions.skills[this.equippedSkills.outer];
                 // 检查内力够不够
                 if (this.player.currentQi >= skillDef.qiCost) {
                     this.player.currentQi -= skillDef.qiCost;
@@ -414,7 +414,7 @@ const game = {
                 // 飘击败提示
                 this.showDamage(0, "击败！", "enemy");
                 
-                const area = this.definitions.areas[this.adventure.currentArea];
+                const area = game.definitions.areas[this.adventure.currentArea];
                 // 奖励修为经验：新手村每个敌人 10修为，青狼林每个敌人 50修为
                 let rewardXiuwei = area.name === "新手村 - 野猪林" ? 10 : 50;
                 let rewardExp = area.xiuweiPerMin * 5;
@@ -458,7 +458,7 @@ const game = {
         let total = this.player.baseAttack;
         // 外功加成
         if (this.equippedSkills.outer) {
-            const def = this.definitions.skills[this.equippedSkills.outer];
+            const def = game.definitions.skills[this.equippedSkills.outer];
             const level = this.skills[this.equippedSkills.outer].level;
             total += def.baseDamage + def.damagePerLevel * level;
         }
@@ -469,7 +469,7 @@ const game = {
         let total = this.player.baseDefense;
         // 轻功加少量防御，或者闪避（简化直接加防御）
         if (this.equippedSkills.light) {
-            const def = this.definitions.skills[this.equippedSkills.light];
+            const def = game.definitions.skills[this.equippedSkills.light];
             const level = this.skills[this.equippedSkills.light].level;
             total += def.baseDodge + def.dodgePerLevel * level / 2;
         }
@@ -479,7 +479,7 @@ const game = {
     get qiRecoveryPerSecond() {
         let base = 0.3;
         if (this.equippedSkills.inner) {
-            const def = this.definitions.skills[this.equippedSkills.inner];
+            const def = game.definitions.skills[this.equippedSkills.inner];
             const level = this.skills[this.equippedSkills.inner].level;
             base += def.baseRecover + def.recoverPerLevel * level;
         }
@@ -546,7 +546,7 @@ const game = {
             this.player.xiuwei -= cost;
             this.meridians[name] = true;
             // 应用属性加成
-            const m = this.definitions.meridians.find(m => m.name === name);
+            const m = game.definitions.meridians.find(m => m.name === name);
             this.applyBonus(m.bonus);
             this.save();
             this.renderMeridianList(); // 刷新按钮禁用状态
@@ -579,7 +579,7 @@ const game = {
     },
 
     upgradeSkill: function(id) {
-        const def = this.definitions.skills[id];
+        const def = game.definitions.skills[id];
         const currentLevel = this.getSkillLevel(id);
         const cost = Math.floor(def.baseCost * Math.pow(def.costMult, currentLevel));
         if (this.player.xiuwei >= cost) {
@@ -686,7 +686,7 @@ const game = {
         
         let html = '';
         for (let itemId in this.inventory) {
-            const def = this.definitions.items[itemId];
+            const def = game.definitions.items[itemId];
             const count = this.inventory[itemId];
             if (def.type === 'consumable') {
                 html += `
@@ -728,7 +728,7 @@ const game = {
     
     // 使用物品
     useItem: function(itemId) {
-        const def = this.definitions.items[itemId];
+        const def = game.definitions.items[itemId];
         if (def.type === 'consumable') {
             if (def.effect === 'restoreHp') {
                 this.player.currentHp = Math.min(this.player.maxHp, this.player.currentHp + def.value);
@@ -790,7 +790,7 @@ const game = {
     renderMeridianList: function() {
         const container = document.getElementById('meridianList');
         let html = '';
-        this.definitions.meridians.forEach(m => {
+        game.definitions.meridians.forEach(m => {
             const unlocked = this.meridians[m.name];
             const cls = unlocked ? 'meridian-item unlocked' : 'meridian-item';
             const disabled = unlocked || this.player.xiuwei < m.cost;
@@ -832,8 +832,8 @@ const game = {
     renderSkillList: function() {
         const container = document.getElementById('skillList');
         let html = '';
-        for (let id in this.definitions.skills) {
-            const def = this.definitions.skills[id];
+        for (let id in game.definitions.skills) {
+            const def = game.definitions.skills[id];
             const level = this.getSkillLevel(id);
             const cost = Math.floor(def.baseCost * Math.pow(def.costMult, level));
             const disabled = this.player.xiuwei < cost;
@@ -878,7 +878,7 @@ const game = {
     
     // 装备武学
     equipSkill: function(skillId) {
-        const def = this.definitions.skills[skillId];
+        const def = game.definitions.skills[skillId];
         // 根据类型放到对应插槽
         if (def.type === '内功') {
             this.equippedSkills.inner = skillId;
@@ -895,8 +895,8 @@ const game = {
     renderAreaList: function() {
         const container = document.getElementById('areaList');
         let html = '';
-        for (let id in this.definitions.areas) {
-            const area = this.definitions.areas[id];
+        for (let id in game.definitions.areas) {
+            const area = game.definitions.areas[id];
             const isActive = this.adventure.currentArea === id && this.adventure.isAdventuring;
             const cls = isActive ? 'adventure-area active' : 'adventure-area';
             const disabled = this.player.level < area.minLevel;
@@ -985,7 +985,7 @@ const game = {
             this.updateCombatHeader();
             return;
         }
-        const area = this.definitions.areas[this.adventure.currentArea];
+        const area = game.definitions.areas[this.adventure.currentArea];
         container.innerHTML = `<p><strong>正在闯荡：${area.name}</strong></p><p>顶部状态栏实时显示战斗情况。</p>`;
         this.updateCombatHeader();
     },
@@ -1006,9 +1006,9 @@ const game = {
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
         // 先画线，后画节点
-        this.definitions.meridians.forEach(m => {
+        game.definitions.meridians.forEach(m => {
             if (m.connectTo && this.meridians[m.name] && this.meridians[m.connectTo]) {
-                const fromM = this.definitions.meridians.find(mm => mm.name === m.connectTo);
+                const fromM = game.definitions.meridians.find(mm => mm.name === m.connectTo);
                 const fromX = centerX + (fromM.position.x * scale);
                 const fromY = centerY + (fromM.position.y * scale);
                 const toX = centerX + (m.position.x * scale);
@@ -1021,7 +1021,7 @@ const game = {
                 ctx.stroke();
             } else if (m.connectTo) {
                 // 未打通，画灰线
-                const fromM = this.definitions.meridians.find(mm => mm.name === m.connectTo);
+                const fromM = game.definitions.meridians.find(mm => mm.name === m.connectTo);
                 if (fromM) {
                     const fromX = centerX + (fromM.position.x * scale);
                     const fromY = centerY + (fromM.position.y * scale);
@@ -1038,7 +1038,7 @@ const game = {
         });
 
         // 画节点
-        this.definitions.meridians.forEach(m => {
+        game.definitions.meridians.forEach(m => {
             const x = centerX + (m.position.x * scale);
             const y = centerY + (m.position.y * scale);
             const radius = 15 * window.devicePixelRatio;
