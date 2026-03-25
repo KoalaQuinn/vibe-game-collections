@@ -1,0 +1,114 @@
+[gd_scene load_steps=6 format=3 uid="uid://b40wcsqacpmnb"]
+
+[ext_resource type="Script" path="res://src/main.gd" id="1_main"]
+[ext_resource type="Script" path="res://src/autoload/GameData.gd" id="2_gamedata"]
+[ext_resource type="Script" path="res://src/data/Definitions.gd" id="3_definitions"]
+
+[node name="Main" type="Control"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_main")
+
+[node name="StatsPanel" type="VBoxContainer" parent="."]
+margin_top = 8.0
+margin_bottom = 180.0
+grow_horizontal = 2
+
+[node name="Title" type="Label" parent="StatsPanel"]
+text = "武侠放置 - 角色状态"
+custom_minimum_size = Vector2(0, 30)
+alignment = 1
+
+[node name="LevelLabel" type="Label" parent="StatsPanel"]
+text = "等级: 1"
+
+[node name="XiuweiLabel" type="Label" parent="StatsPanel"]
+text = "修为: 0/100"
+
+[node name="HpLabel" type="Label" parent="StatsPanel"]
+text = "气血: 100/100"
+
+[node name="QiLabel" type="Label" parent="StatsPanel"]
+text = "内力: 100/100"
+
+[node name="AttackLabel" type="Label" parent="StatsPanel"]
+text = "攻击: 10"
+
+[node name="DefenseLabel" type="Label" parent="StatsPanel"]
+text = "防御: 5"
+
+[node name="WuxingLabel" type="Label" parent="StatsPanel"]
+text = "悟性: 10"
+
+[node name="LevelUpButton" type="Button" parent="StatsPanel"]
+text = "升级"
+disabled = true
+
+[node name="Tabs" type="TabContainer" parent="."]
+margin_top = 180.0
+margin_bottom = 1280.0
+grow_horizontal = 2
+grow_vertical = 2
+current_tab = 0
+
+[node name="Cultivation" type="VBoxContainer" parent="Tabs"]
+margin_top = 38.0
+margin_right = 798.0
+margin_bottom = 1098.0
+
+[node name="Title" type="Label" parent="Tabs/Cultivation"]
+text = "离线修炼"
+custom_minimum_size = Vector2(0, 30)
+
+[node name="Description" type="Label" parent="Tabs/Cultivation"]
+text = "关闭游戏也会自动获得修为，上线领取即可"
+autowrap_mode = 1
+
+[node name="Meridians" type="VBoxContainer" parent="Tabs"]
+margin_top = 38.0
+margin_right = 798.0
+margin_bottom = 1098.0
+
+[node name="Title" type="Label" parent="Tabs/Meridians"]
+text = "丹田经脉"
+custom_minimum_size = Vector2(0, 30)
+
+[node name="Skills" type="VBoxContainer" parent="Tabs"]
+margin_top = 38.0
+margin_right = 798.0
+margin_bottom = 1098.0
+
+[node name="Title" type="Label" parent="Tabs/Skills"]
+text = "武学修炼"
+custom_minimum_size = Vector2(0, 30)
+
+[node name="Adventure" type="VBoxContainer" parent="Tabs"]
+margin_top = 38.0
+margin_right = 798.0
+margin_bottom = 1098.0
+
+[node name="Title" type="Label" parent="Tabs/Adventure"]
+text = "江湖闯荡"
+custom_minimum_size = Vector2(0, 30)
+
+[node name="Description" type="Label" parent="Tabs/Adventure"]
+text = "挂机闯荡，自动打怪，获得材料和经验"
+autowrap_mode = 1
+
+[node name="Inventory" type="VBoxContainer" parent="Tabs"]
+margin_top = 38.0
+margin_right = 798.0
+margin_bottom = 1098.0
+
+[node name="Title" type="Label" parent="Tabs/Inventory"]
+text = "背包行囊"
+custom_minimum_size = Vector2(0, 30)
+
+[node name="GameData" type="Node" groups=["autoload"]]
+script = ExtResource("2_gamedata")
+
+[node name="Definitions" type="Node" groups=["autoload"]]
+script = ExtResource("3_definitions")

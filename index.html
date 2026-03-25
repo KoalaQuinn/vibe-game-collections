@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>游戏合集 | My Games Collection</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(90deg, #00d4ff 0%, #ff00c8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.8;
+            margin-bottom: 0.5rem;
+        }
+
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .game-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: #fff;
+            display: block;
+        }
+
+        .game-card:hover {
+            transform: translateY(-8px);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .game-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .game-description {
+            opacity: 0.7;
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+
+        .game-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .tag {
+            background: rgba(0, 212, 255, 0.2);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+        }
+
+        .game-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .play-button {
+            background: linear-gradient(90deg, #00d4ff 0%, #ff00c8 100%);
+            padding: 0.5rem 1.5rem;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+
+        .game-card:hover .play-button {
+            transform: scale(1.05);
+        }
+
+        footer {
+            text-align: center;
+            opacity: 0.5;
+            margin-top: 4rem;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+            .games-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>我的游戏合集</h1>
+            <p class="subtitle">这里收集了我制作的所有小游戏，欢迎游玩 🎮</p>
+        </header>
+
+        <div class="games-grid">
+            <a href="./snake-game/" class="game-card">
+                <div class="game-title">贪吃蛇</div>
+                <div class="game-description">经典的贪吃蛇游戏，控制蛇吃到食物越长越大，不要撞到墙或者自己身体。</div>
+                <div class="game-tags">
+                    <span class="tag">经典</span>
+                    <span class="tag">JavaScript</span>
+                    <span class="tag">Canvas</span>
+                </div>
+                <div class="game-footer">
+                    <span></span>
+                    <span class="play-button">开始游玩 →</span>
+                </div>
+            </a>
+
+            <a href="./fishing-game/" class="game-card">
+                <div class="game-title">钓鱼游戏</div>
+                <div class="game-description">轻松休闲的钓鱼小游戏，放下鱼钩，等待鱼儿上钩，收获满满的渔获。</div>
+                <div class="game-tags">
+                    <span class="tag">休闲</span>
+                    <span class="tag">JavaScript</span>
+                    <span class="tag">Canvas</span>
+                </div>
+                <div class="game-footer">
+                    <span></span>
+                    <span class="play-button">开始游玩 →</span>
+                </div>
+            </a>
+
+            <a href="./xiuzhen-idle/" class="game-card">
+                <div class="game-title">修真放置</div>
+                <div class="game-description">放置类修真游戏，打坐修炼，渡劫飞升，一步步成为修真大佬。</div>
+                <div class="game-tags">
+                    <span class="tag">放置</span>
+                    <span class="tag">修真</span>
+                    <span class="tag">JavaScript</span>
+                </div>
+                <div class="game-footer">
+                    <span></span>
+                    <span class="play-button">开始游玩 →</span>
+                </div>
+            </a>
+
+            <a href="./wuxia-idle-web/" class="game-card">
+                <div class="game-title">武侠放置</div>
+                <div class="game-description">江湖武侠放置游戏，修炼武功，闯荡江湖，成为一代大侠。</div>
+                <div class="game-tags">
+                    <span class="tag">放置</span>
+                    <span class="tag">武侠</span>
+                    <span class="tag">Web</span>
+                </div>
+                <div class="game-footer">
+                    <span></span>
+                    <span class="play-button">开始游玩 →</span>
+                </div>
+            </a>
+
+            <a href="./threekingdom-sim-web/" class="game-card">
+                <div class="game-title">三国模拟</div>
+                <div class="game-description">三国乱世模拟，招募武将，发展势力，一统天下。</div>
+                <div class="game-tags">
+                    <span class="tag">策略</span>
+                    <span class="tag">三国</span>
+                    <span class="tag">模拟</span>
+                </div>
+                <div class="game-footer">
+                    <span></span>
+                    <span class="play-button">开始游玩 →</span>
+                </div>
+            </a>
+        </div>
+
+        <footer>
+            <p>不断更新中... 敬请期待更多游戏 🎮</p>
+        </footer>
+    </div>
+</body>
+</html>

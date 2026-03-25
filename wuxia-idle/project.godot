@@ -1,0 +1,38 @@
+; Engine configuration file.
+; It's best edited using the Godot editor itself because
+; it keeps the formatting consistent and automatically merges conflicts.
+;
+; Format:
+;   Lines starting with [keyword] represent sections.
+;   Keys are stored as key=value.
+;   Lines starting with ; are comments.
+
+[application]
+
+config/name="武侠放置"
+run/main_scene="res://src/main.tscn"
+config/icon="res://icon.svg"
+
+[display]
+window/size/width=800
+window/size/height=1280
+window/position/preset="11"
+window/resizable=true
+window/vsync_vial_comp_os="1"
+
+[gfx]
+quality/driver/driver_name="Vulkan"
+
+[input]
+
+[rendering]
+
+[Physics]
+
+[Debug]
+
+[Editor]
+
+[Autoload]
+
+[/Autoload]
