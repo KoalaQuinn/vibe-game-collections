@@ -84,7 +84,25 @@ const game = {
     selectChoice: function(dialogueId, choiceIndex) {
         // 从当前客人找到当前对话，获取选中的choice
         const currentDialogue = this.findDialogue(dialogueId, this.currentCustomer);
+        if (!currentDialogue || !currentDialogue.choices) {
+            // 找不到对话，直接下一个客人兜底
+            this.updateUI();
+            this.save();
+            setTimeout(() => {
+                this.spawnNextCustomer();
+            }, 800);
+            return;
+        }
         const choice = currentDialogue.choices[choiceIndex];
+        if (!choice) {
+            // 找不到选项，直接下一个客人兜底
+            this.updateUI();
+            this.save();
+            setTimeout(() => {
+                this.spawnNextCustomer();
+            }, 800);
+            return;
+        }
 
         // 应用效果
         if (choice.affinityAdd !== undefined) {
@@ -122,10 +140,14 @@ const game = {
     findDialogue: function(id, character) {
         // 如果id是数字（或数字字符串），说明是index
         const numId = Number(id);
-        if (!isNaN(numId)) return character.dialogues[numId];
+        if (typeof id === 'number' || (typeof id === 'string' && id.trim() !== '' && !isNaN(numId))) {
+            return character.dialogues[numId];
+        }
         // 如果id就是对话本身
         if (!id) return character.dialogues[0];
-        return character.dialogues.find(d => d.id === id);
+        const found = character.dialogues.find(d => d.id === id);
+        // 如果找不到，返回第一个对话做兜底
+        return found || character.dialogues[0];
     },
 
     // 渲染角色立绘
