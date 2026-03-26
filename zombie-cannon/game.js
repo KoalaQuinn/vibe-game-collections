@@ -456,10 +456,10 @@ const game = {
         this.ctx.stroke();
         
         // 中央炮塔（玩家）
-        const gradient = this.ctx.createRadialGradient(this.startX, this.startY, 0, this.startX, this.startY, 40);
-        gradient.addColorStop(0, '#4CAF50');
-        gradient.addColorStop(1, '#2E7D32');
-        this.ctx.fillStyle = gradient;
+        const towerGradient = this.ctx.createRadialGradient(this.startX, this.startY, 0, this.startX, this.startY, 40);
+        towerGradient.addColorStop(0, '#4CAF50');
+        towerGradient.addColorStop(1, '#2E7D32');
+        this.ctx.fillStyle = towerGradient;
         this.ctx.beginPath();
         this.ctx.arc(this.startX, this.startY, 40, 0, Math.PI * 2);
         this.ctx.fill();
