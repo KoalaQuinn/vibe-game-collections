@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2048 - Phaser 版</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            color: #fff;
+        }
+
+        h1 {
+            margin-bottom: 10px;
+            font-size: 2rem;
+            color: #f6b954;
+            text-shadow: 2px 2px 0 #000;
+        }
+
+        .version-info {
+            font-size: 0.8rem;
+            opacity: 0.7;
+            margin-bottom: 10px;
+        }
+
+        .ui-bar {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+
+        .stat-value {
+            font-weight: bold;
+            color: #f6b954;
+            font-size: 1.5rem;
+        }
+
+        #game-container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 10px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        canvas {
+            border-radius: 8px;
+        }
+
+        .controls {
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        .restart-btn {
+            padding: 10px 30px;
+            font-size: 1.1rem;
+            background: linear-gradient(90deg, #f6b954 0%, #e8a438 100%);
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .restart-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .hint {
+            margin-top: 10px;
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎮 2048</h1>
+    <div class="version-info">Version: 1.0.0 - Updated: 2026-03-27 00:15 (GMT+8)</div>
+    <div class="ui-bar">
+        <div class="stat">
+            <div class="stat-label">得分</div>
+            <div class="stat-value" id="score">0</div>
+        </div>
+        <div class="stat">
+            <div class="stat-label">最高分</div>
+            <div class="stat-value" id="best-score">0</div>
+        </div>
+    </div>
+    <div id="game-container">
+        <div id="game-canvas"></div>
+    </div>
+    <div class="controls">
+        <button class="restart-btn" onclick="restartGame()">重新开始</button>
+    </div>
+    <div class="hint">
+        PC：方向键滑动 | 手机：触摸滑动
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
+    <script src="game.js"></script>
+    <script>
+        let game;
+
+        function restartGame() {
+            if (game) {
+                game.destroy(true);
+            }
+            game = new PhaserGame();
+        }
+
+        // 初始化游戏
+        window.onload = () => {
+            game = new PhaserGame();
+            // 读取最高分
+            const best = localStorage.getItem('2048-best');
+            if (best) {
+                document.getElementById('best-score').textContent = best;
+            }
+        };
+    </script>
+</body>
+</html>
