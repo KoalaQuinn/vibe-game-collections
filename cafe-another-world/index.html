@@ -24,8 +24,9 @@
 
         .game-container {
             width: 100%;
-            max-width: 900px;
-            height: 600px;
+            max-width: 450px;
+            height: 100vh;
+            max-height: 100vw;
             background: #1e1e1e;
             border-radius: 12px;
             overflow: hidden;
@@ -37,13 +38,16 @@
 
         @media (max-width: 600px) {
             .game-container {
-                height: 90vh;
+                height: 100vh;
+                max-height: 100vh;
+                border-radius: 0;
             }
         }
 
         /* 背景场景 */
         .scene {
             flex: 1;
+            min-height: 50%;
             position: relative;
             background: linear-gradient(to bottom, #8b5a2b 0%, #a06640 100%);
             overflow: hidden;
@@ -61,8 +65,11 @@
         .character {
             position: absolute;
             bottom: 0;
-            width: 200px;
-            height: 280px;
+            width: 40%;
+            min-width: 140px;
+            max-width: 180px;
+            height: 60%;
+            max-height: 70%;
             display: flex;
             justify-content: center;
             align-items: flex-end;
@@ -77,14 +84,14 @@
         }
 
         .character-avatar {
-            width: 160px;
-            height: 240px;
+            width: 90%;
+            height: 85%;
             border-radius: 10px;
             background: rgba(0, 0, 0, 0.3);
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 80px;
+            font-size: 60px;
             border: 3px solid rgba(255, 255, 255, 0.2);
         }
 
@@ -116,31 +123,38 @@
 
         /* 对话框 */
         .dialog-box {
-            height: 180px;
+            flex: 0 0 auto;
+            max-height: 40%;
             background: rgba(0, 0, 0, 0.85);
-            padding: 15px;
+            padding: 12px 15px;
             border-top: 2px solid #d4a574;
+            display: flex;
+            flex-direction: column;
         }
 
         .speaker-name {
             font-size: 1rem;
             font-weight: bold;
             color: #ffd700;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
+            flex: 0 0 auto;
         }
 
         .dialog-text {
-            font-size: 1.1rem;
-            line-height: 1.6;
-            min-height: 80px;
+            font-size: 1.05rem;
+            line-height: 1.5;
+            flex: 0 0 auto;
+            margin-bottom: 8px;
         }
 
-        /* 选项按钮 */
+        /* 选项按钮 - 超出可滚动 */
         .choices {
-            margin-top: 10px;
+            flex: 1;
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 6px;
+            overflow-y: auto;
+            padding-right: 5px;
         }
 
         .choice-btn {
