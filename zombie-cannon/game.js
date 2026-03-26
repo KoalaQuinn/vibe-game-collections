@@ -1,8 +1,8 @@
 /**
  * 💥 向僵尸开炮 - 网页版
  * 改版：自动射击，敌人从上方下来，玩家升级
- * Version: 1.0.2
- * Updated: 2026-03-26 13:53 (GMT+8)
+ * Version: 1.1.0
+ * Updated: 2026-03-26 14:05 (GMT+8)
  */
 
 // 💥 向僵尸开炮 - 网页版
@@ -117,7 +117,17 @@ const game = {
         // 每秒发射 2 / speedBoost 发
         if (!this.lastFireTime) this.lastFireTime = Date.now();
         const now = Date.now();
-        if (now - this.lastFireTime >= 500 / (this.getFireRateBoost())) {
+        const interval = 500 / (this.getFireRateBoost());
+        const elapsed = now - this.lastFireTime;
+        const pct = Math.min(100, (elapsed / interval) * 100);
+        
+        // 更新CD进度条
+        const cooldownBar = document.getElementById('fire-cooldown');
+        if (cooldownBar) {
+            cooldownBar.style.width = pct + '%';
+        }
+
+        if (elapsed >= interval) {
             this.autoFireOne();
             this.lastFireTime = now;
         }
@@ -201,6 +211,13 @@ const game = {
             const b = this.bullets[i];
             b.x += b.vx;
             b.y += b.vy;
+
+            // 记录轨迹点
+            b.trail.push({x: b.x, y: b.y});
+            // 限制轨迹长度，避免性能问题
+            if (b.trail.length > 100) {
+                b.trail.shift();
+            }
 
             // 边界弹跳
             let bounced = false;
@@ -504,9 +521,21 @@ const game = {
             this.ctx.stroke();
         });
 
-        // 画炮弹
-        this.ctx.fillStyle = '#00d4ff';
+        // 画炮弹轨迹线和弹头
+        this.ctx.strokeStyle = 'rgba(0, 212, 255, 0.6)';
+        this.ctx.lineWidth = 2;
         this.bullets.forEach(b => {
+            // 画轨迹线
+            if (b.trail.length > 1) {
+                this.ctx.beginPath();
+                this.ctx.moveTo(b.trail[0].x, b.trail[0].y);
+                for (let i = 1; i < b.trail.length; i++) {
+                    this.ctx.lineTo(b.trail[i].x, b.trail[i].y);
+                }
+                this.ctx.stroke();
+            }
+            // 画弹头
+            this.ctx.fillStyle = '#00d4ff';
             this.ctx.beginPath();
             this.ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
             this.ctx.fill();
@@ -690,7 +719,8 @@ const game = {
             maxBounces: maxBounces,
             bounces: 0,
             pierceLeft: pierce,
-            exploded: false
+            exploded: false,
+            trail: [{x: this.startX, y: this.startY}] // 子弹轨迹
         });
     },
 
