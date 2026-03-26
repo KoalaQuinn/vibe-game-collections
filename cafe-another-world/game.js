@@ -63,7 +63,7 @@ const game = {
     showDialogue: function(text, character) {
         document.getElementById('speaker-name').textContent = `${character.name} (${character.race})`;
         document.getElementById('dialog-text').textContent = text;
-        this.currentDialogue = character;
+        this.currentCharacter = character;
     },
 
     // 显示选项
@@ -82,8 +82,9 @@ const game = {
 
     // 玩家选择
     selectChoice: function(dialogueId, choiceIndex) {
-        const dialogue = this.findDialogue(dialogueId, this.currentCustomer);
-        const choice = dialogue.choices[choiceIndex];
+        // 从当前客人找到当前对话，获取选中的choice
+        const currentDialogue = this.findDialogue(dialogueId, this.currentCustomer);
+        const choice = currentDialogue.choices[choiceIndex];
 
         // 应用效果
         if (choice.affinityAdd !== undefined) {
