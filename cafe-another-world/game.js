@@ -1,7 +1,7 @@
 /**
  * 🍜 异界小吃店 - 游戏核心
- * Version: 1.0.1
- * Updated: 2026-03-26 11:44 (GMT+8)
+ * Version: 1.2.0
+ * Updated: 2026-03-27 01:10 (GMT+8)
  */
 
 // 🍜 异界小吃店 - 游戏核心
@@ -107,15 +107,28 @@ const game = {
         // 应用效果
         if (choice.affinityAdd !== undefined) {
             this.currentCustomer.affinity += choice.affinityAdd;
+            if (choice.affinityAdd > 0) {
+                this.showFloatText(`+${choice.affinityAdd} 好感`, '#ff6b9d');
+            } else {
+                this.showFloatText(`${choice.affinityAdd} 好感', '#f44336');
+            }
         }
         if (choice.moneyAdd !== undefined) {
             this.money += choice.moneyAdd;
+            if (choice.moneyAdd > 0) {
+                this.showFloatText(`+${choice.moneyAdd} 金币`, '#ffd700');
+            }
         }
         if (choice.reputationAdd !== undefined) {
             this.reputation += choice.reputationAdd;
+            if (choice.reputationAdd > 0) {
+                this.showFloatText(`+${choice.reputationAdd} 声望', '#4CAF50');
+            }
         }
         if (choice.foodUnlock !== undefined) {
             unlockRecipe(choice.foodUnlock);
+            const recipeName = recipes.find(r => r.id === choice.foodUnlock)?.name || choice.foodUnlock;
+            this.showFloatText(`解锁 ${recipeName}`, '#00d4ff');
         }
 
         // 找到下一个对话
@@ -284,5 +297,42 @@ const game = {
         setTimeout(() => {
             document.body.removeChild(toast);
         }, 2000);
+    },
+
+    // 飘字效果 - 属性变化时弹出浮动文字
+    showFloatText: function(text, color) {
+        const scene = document.querySelector('.scene');
+        const floatText = document.createElement('div');
+        floatText.style.cssText = `
+            position: absolute;
+            bottom: 50%;
+            left: 50%;
+            transform: translateX(-50%);
+            color: ${color};
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-shadow: 1px 1px 0 #000;
+            pointer-events: none;
+            z-index: 100;
+            animation: floatUp 1s ease-out forwards;
+        `;
+        floatText.textContent = text;
+        scene.appendChild(floatText);
+        setTimeout(() => {
+            if (scene.contains(floatText)) {
+                scene.removeChild(floatText);
+            }
+        }, 1000);
     }
 };
+
+// 添加飘字动画
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes floatUp {
+        0% { opacity: 1; transform: translateX(-50%) translateY(0); }
+        100% { opacity: 0; transform: translateX(-50%) translateY(-50px); }
+    }
+`;
+document.head.appendChild(style);
+

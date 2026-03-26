@@ -44,21 +44,23 @@
             }
         }
 
-        /* 背景场景 */
+        /* 背景场景 - 异世界小吃店木质厨房 */
         .scene {
             flex: 1;
             min-height: 50%;
             position: relative;
-            background: linear-gradient(to bottom, #8b5a2b 0%, #a06640 100%);
+            background: linear-gradient(135deg, #2c1810 0%, #3d2b1f 100%);
             overflow: hidden;
         }
 
         .bg-image {
             width: 100%;
             height: 100%;
-            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300"><rect fill="%238b5a2b" width="400" height="300"/><rect fill="%237a4a22" y="250" width="400" height="50"/><circle fill="%23654321" cx="100" cy="80" r="30"/><circle fill="%23654321" cx="250" cy="120" r="45"/><circle fill="%23654321" cx="350" cy="60" r="25"/></svg>');
+            background-image: 
+                linear-gradient(rgba(44, 24, 16, 0.7), rgba(44, 24, 16, 0.8)),
+                url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="500" viewBox="0 0 400 500"><defs><pattern id="wood" patternUnits="userSpaceOnUse" width="100" height="20"><rect width="100" height="20" fill="%235d4037"/><path d="M0 10 L100 10" stroke="%234a3020" stroke-width="2" opacity="0.5"/></pattern></defs><rect width="400" height="500" fill="url(%23wood)"/></svg>');
             background-size: cover;
-            opacity: 0.3;
+            opacity: 0.5;
         }
 
         /* 角色立绘 */
@@ -142,9 +144,19 @@
 
         .dialog-text {
             font-size: 1.05rem;
-            line-height: 1.5;
+            line-height: 1.6;
             flex: 0 0 auto;
             margin-bottom: 8px;
+        }
+
+        @media (max-width: 600px) {
+            .dialog-text {
+                font-size: 1.15rem;
+            }
+            .choice-btn {
+                font-size: 1.05rem;
+                padding: 10px 12px;
+            }
         }
 
         /* 选项按钮 - 超出可滚动 */
