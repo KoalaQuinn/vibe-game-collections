@@ -1,3 +1,9 @@
+/**
+ * 🍜 异界小吃店 - 游戏核心
+ * Version: 1.0.1
+ * Updated: 2026-03-26 11:44 (GMT+8)
+ */
+
 // 🍜 异界小吃店 - 游戏核心
 
 const game = {
@@ -113,8 +119,9 @@ const game = {
 
     // 找对话
     findDialogue: function(id, character) {
-        // 如果id是数字，说明是index
-        if (typeof id === 'number') return character.dialogues[id];
+        // 如果id是数字（或数字字符串），说明是index
+        const numId = Number(id);
+        if (!isNaN(numId)) return character.dialogues[numId];
         // 如果id就是对话本身
         if (!id) return character.dialogues[0];
         return character.dialogues.find(d => d.id === id);
