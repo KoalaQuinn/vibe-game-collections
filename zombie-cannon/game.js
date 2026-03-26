@@ -23,6 +23,7 @@ const game = {
     startX: 200,
     startY: 680,
     lastFireTime: Date.now(),
+    power: 100, // 自动射击满威力
 
     // 炮弹
     bullets: [],
@@ -445,12 +446,34 @@ const game = {
         this.ctx.fillStyle = gradient;
         this.ctx.fillRect(0, 0, w, h);
 
-        // 画玩家基地底线
-        this.ctx.strokeStyle = 'rgba(255, 215, 0, 0, 0.5)';
+        // 画玩家基地/炮塔
+        // 基地底线
+        this.ctx.strokeStyle = 'rgba(255, 215, 0, 0.5)';
         this.ctx.lineWidth = 3;
         this.ctx.beginPath();
         this.ctx.moveTo(0, this.startY);
         this.ctx.lineTo(this.width, this.startY);
+        this.ctx.stroke();
+        
+        // 中央炮塔（玩家）
+        const gradient = this.ctx.createRadialGradient(this.startX, this.startY, 0, this.startX, this.startY, 40);
+        gradient.addColorStop(0, '#4CAF50');
+        gradient.addColorStop(1, '#2E7D32');
+        this.ctx.fillStyle = gradient;
+        this.ctx.beginPath();
+        this.ctx.arc(this.startX, this.startY, 40, 0, Math.PI * 2);
+        this.ctx.fill();
+        this.ctx.strokeStyle = '#fff';
+        this.ctx.lineWidth = 3;
+        this.ctx.stroke();
+        
+        // 炮口
+        this.ctx.fillStyle = '#1B5E20';
+        this.ctx.beginPath();
+        this.ctx.arc(this.startX, this.startY - 10, 15, 0, Math.PI * 2);
+        this.ctx.fill();
+        this.ctx.strokeStyle = '#fff';
+        this.ctx.lineWidth = 2;
         this.ctx.stroke();
 
         // 画僵尸
@@ -458,7 +481,7 @@ const game = {
             // 血条
             const barWidth = z.size * 2;
             const barHeight = 4;
-            this.ctx.fillStyle = 'rgba(0, 0, 0, 0, 0.5)';
+            this.ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
             this.ctx.fillRect(z.x - barWidth/2, z.y - z.size - 8, barWidth, barHeight);
             this.ctx.fillStyle = '#f44336';
             this.ctx.fillRect(z.x - barWidth/2, z.y - z.size - 8, barWidth * (z.hp / z.maxHp), barHeight);
