@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>艾泽拉斯放置 - 魔兽世界放置RPG</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game">
+        <!-- 顶部信息栏 -->
+        <header class="game-header">
+            <div class="player-info">
+                <div class="player-name-level">
+                    <span id="player-name">冒险者</span>
+                    Lv.<span id="player-level">1</span>
+                </div>
+                <div class="exp-bar">
+                    <div id="exp-fill"></div>
+                    <span id="exp-text">0/100</span>
+                </div>
+                <div class="player-stats">
+                    <span>❤️ <span id="player-hp">100</span>/<span id="player-maxhp">100</span></span>
+                    <span>⚔️ <span id="player-attack">10</span></span>
+                </div>
+            </div>
+            <div class="gold-info">
+                <span>💰 <span id="gold">0</span> 金币</span>
+            </div>
+        </header>
+
+        <!-- 主战斗区域 -->
+        <div class="main-area">
+            <!-- 敌人区域 -->
+            <div class="enemy-area">
+                <div class="enemy-header">
+                    <span id="enemy-name">史莱姆</span>
+                    <span>HP: <span id="enemy-hp">30</span>/<span id="enemy-maxhp">30</span></span>
+                </div>
+                <div class="enemy-hp-bar">
+                    <div id="enemy-hp-fill"></div>
+                </div>
+                <div id="enemy-portrait">
+                    <img id="enemy-image" src="" alt="敌人">
+                </div>
+                <div class="enemy-stats">
+                    <span>等级: <span id="enemy-level">1</span></span>
+                    <span>经验: +<span id="enemy-exp">10</span></span>
+                </div>
+                <button id="attack-btn">攻击!</button>
+                <div id="battle-log"></div>
+            </div>
+
+            <!-- 右侧面板 -->
+            <div class="side-panel">
+                <!-- 背包/装备 -->
+                <div class="panel-section">
+                    <h3>装备</h3>
+                    <div class="equipment-slots">
+                        <div class="slot" data-slot="head">
+                            <span class="slot-label">头</span>
+                            <div class="slot-item" id="slot-head"></div>
+                        </div>
+                        <div class="slot" data-slot="neck">
+                            <span class="slot-label">颈</span>
+                            <div class="slot-item" id="slot-neck"></div>
+                        </div>
+                        <div class="slot" data-slot="shoulder">
+                            <span class="slot-label">肩</span>
+                            <div class="slot-item" id="slot-shoulder"></div>
+                        </div>
+                        <div class="slot" data-slot="chest">
+                            <span class="slot-label">胸</span>
+                            <div class="slot-item" id="slot-chest"></div>
+                        </div>
+                        <div class="slot" data-slot="weapon">
+                            <span class="slot-label">武器</span>
+                            <div class="slot-item" id="slot-weapon"></div>
+                        </div>
+                        <div class="slot" data-slot="ring">
+                            <span class="slot-label">戒指</span>
+                            <div class="slot-item" id="slot-ring"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 属性提升 -->
+                <div class="panel-section">
+                    <h3>训练</h3>
+                    <div class="upgrade-row">
+                        <button id="upgrade-attack">提升攻击力<br/>- 10 金币</button>
+                        <button id="upgrade-hp">提升生命值<br/>- 10 金币</button>
+                    </div>
+                </div>
+
+                <!-- 自动战斗开关 -->
+                <div class="panel-section">
+                    <h3>设置</h3>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="auto-battle" checked>
+                        <span class="toggle-label">自动战斗</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- 底部背包 -->
+        <div class="inventory-area">
+            <h3>背包 (<span id="item-count">0</span>/20)</h3>
+            <div class="inventory-slots" id="inventory"></div>
+        </div>
+    </div>
+
+    <!-- 装备提示悬浮框 -->
+    <div id="item-tooltip" class="tooltip hidden"></div>
+
+    <script src="game.js"></script>
+</body>
+</html>
