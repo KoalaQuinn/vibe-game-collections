@@ -110,7 +110,7 @@ const game = {
             if (choice.affinityAdd > 0) {
                 this.showFloatText(`+${choice.affinityAdd} 好感`, '#ff6b9d');
             } else {
-                this.showFloatText(`${choice.affinityAdd} 好感', '#f44336');
+                this.showFloatText(`${choice.affinityAdd} 好感`, '#f44336');
             }
         }
         if (choice.moneyAdd !== undefined) {
@@ -122,7 +122,7 @@ const game = {
         if (choice.reputationAdd !== undefined) {
             this.reputation += choice.reputationAdd;
             if (choice.reputationAdd > 0) {
-                this.showFloatText(`+${choice.reputationAdd} 声望', '#4CAF50');
+                this.showFloatText(`+${choice.reputationAdd} 声望`, '#4CAF50');
             }
         }
         if (choice.foodUnlock !== undefined) {
