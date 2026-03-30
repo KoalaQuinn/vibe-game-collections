@@ -130,11 +130,11 @@ function resizeCanvas() {
 
 // 加载地图图片（使用公共领域的艾泽拉斯地图）
 function loadMapImage() {
-    // 使用一张公开的艾泽拉斯大地图
+    // 使用一张支持CORS的艾泽拉斯大地图
     gameState.mapImage = new Image();
     gameState.mapImage.crossOrigin = 'anonymous';
-    // 使用一张免费的艾泽拉斯地图
-    gameState.mapImage.src = 'https://wowpedia.fandom.com/wiki/File:Azeroth_full_map_(Legion).jpg';
+    // 使用 imgur 托管的地图图片
+    gameState.mapImage.src = 'https://i.imgur.com/8qXZ7yH.jpg';
     gameState.mapImage.onload = function() {
         // 初始居中
         const mapWidth = gameState.mapImage.width;
@@ -179,7 +179,7 @@ function render() {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
     // 绘制地图
-    if (gameState.mapImage && gameState.mapImage.complete) {
+    if (gameState.mapImage && gameState.mapImage.complete && gameState.mapImage.naturalWidth > 0) {
         ctx.save();
         ctx.translate(gameState.offsetX, gameState.offsetY);
         ctx.scale(gameState.scale, gameState.scale);
